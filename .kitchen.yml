@@ -1,0 +1,27 @@
+---
+driver_plugin: vagrant
+driver_config:
+  require_chef_omnibus: true
+
+platforms:
+- name: ubuntu-13.04
+  driver_config:
+    box: opscode-ubuntu-13.04
+    box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/opscode_ubuntu-13.04_provisionerless.box
+    customize:
+      memory: 1024
+
+suites:
+- name: default
+  run_list:
+    - recipe[cf_pipeline]
+  attributes:
+    cf_jenkins:
+      pipelines:
+        garden:
+          git: https://github.com/vito/garden-pool-spike.git
+          release_name: garden-pool
+          release_ref: master
+          infrastructure: warden
+          deployments_repo: https://github.com/cloudfoundry/deployments-foo.git
+          deployment_name: bosh_lite
