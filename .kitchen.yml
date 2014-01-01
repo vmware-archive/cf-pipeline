@@ -16,7 +16,9 @@ suites:
   run_list:
     - recipe[cf_pipeline]
   attributes:
-    cf_jenkins:
+    cf_pipeline:
+      basic_auth_username: ci
+      basic_auth_password: foobar
       pipelines:
         garden:
           git: https://github.com/vito/garden-pool-spike.git
