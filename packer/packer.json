@@ -18,7 +18,7 @@
             "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
             "initrd=/install/initrd.gz -- <enter>"
         ],
-        "http_directory": "packer_http",
+        "http_directory": "http",
         "disk_size": 40960,
         "vboxmanage": [
             ["modifyvm", "{{.Name}}", "--memory", "2048"],
@@ -42,7 +42,7 @@
     },
     {
         "type": "chef-solo",
-        "cookbook_paths": ["cookbooks"],
+        "cookbook_paths": ["../cookbooks"],
         "run_list": ["cf_pipeline"],
         "install_command": "bash -c 'curl -L https://www.opscode.com/chef/install.sh | sudo bash'",
         "json": {
