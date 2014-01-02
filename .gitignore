@@ -1,3 +1,6 @@
 tmp
 .kitchen
 .librarian
+cookbooks/
+output-virtualbox-iso/
+packer_cache/

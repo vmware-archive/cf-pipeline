@@ -1,0 +1,60 @@
+{
+    "variables": {
+    },
+    "builders": [{
+        "type": "virtualbox-iso",
+        "guest_os_type": "Ubuntu_64",
+        "iso_url": "http://releases.ubuntu.com/raring/ubuntu-13.04-server-amd64.iso",
+        "iso_checksum": "7d335ca541fc4945b674459cde7bffb9",
+        "iso_checksum_type": "md5",
+        "boot_command": [
+            "<esc><esc><enter><wait>",
+            "/install/vmlinuz noapic ",
+            "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+            "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+            "hostname={{ .Name }} ",
+            "fb=false debconf/frontend=noninteractive ",
+            "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+            "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+            "initrd=/install/initrd.gz -- <enter>"
+        ],
+        "http_directory": "packer_http",
+        "disk_size": 40960,
+        "vboxmanage": [
+            ["modifyvm", "{{.Name}}", "--memory", "2048"],
+            ["modifyvm", "{{.Name}}", "--cpus", "4"]
+        ],
+        "ssh_username": "packer",
+        "ssh_password": "packer",
+        "ssh_wait_timeout": "3000s",
+        "shutdown_command": "echo 'packer' | sudo -S shutdown -P now"
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "scripts": [
+            "shell_provisioning/make_packer_sudoer.sh"
+            ],
+        "override": {
+            "virtualbox-iso": {
+                "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+            }
+        }
+    },
+    {
+        "type": "chef-solo",
+        "cookbook_paths": ["cookbooks"],
+        "run_list": ["cf_pipeline"],
+        "install_command": "bash -c 'curl -L https://www.opscode.com/chef/install.sh | sudo bash'",
+        "json": {
+            "ssh_known_hosts": [
+                "github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==\n"
+                ],
+            "cf_pipeline": {
+                "ssl_passphrase": "whatever",
+                "basic_auth_username": "jenkins",
+                "basic_auth_password": "jenkins",
+                "pipelines": {}
+            }
+        }
+    }]
+}
