@@ -27,10 +27,10 @@
                 ["modifyvm", "{{.Name}}", "--memory", "2048"],
                 ["modifyvm", "{{.Name}}", "--cpus", "4"]
             ],
-            "ssh_username": "packer",
-            "ssh_password": "packer",
+            "ssh_username": "vagrant",
+            "ssh_password": "vagrant",
             "ssh_wait_timeout": "3000s",
-            "shutdown_command": "echo 'packer' | sudo -S shutdown -P now"
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now"
         },
         {
             "type": "amazon-ebs",
@@ -46,14 +46,14 @@
         "provisioners": [{
             "type": "shell",
             "scripts": [
-                "shell_provisioning/make_packer_sudoer.sh"
+                "shell_provisioning/make_vagrant_sudoer.sh"
             ],
             "override": {
                 "virtualbox-iso": {
-                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                    "execute_command": "echo 'vagrant'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
                 },
                 "amazon-ebs": {
-                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                    "execute_command": "echo 'vagrant'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
                 }
             }
         },
@@ -75,16 +75,29 @@
             }
         },
         {
+            "only": ["virtualbox-iso"],
+            "type": "shell",
+            "scripts": [
+                "shell_provisioning/allow_vagrant_ssh_login.sh",
+                "shell_provisioning/install_virtualbox_guest_additions.sh"
+            ],
+            "override": {
+                "virtualbox-iso": {
+                    "execute_command": "echo 'vagrant'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                }
+            }
+        },
+        {
             "type": "shell",
             "scripts": [
                 "shell_provisioning/clean_disk.sh"
             ],
             "override": {
                 "virtualbox-iso": {
-                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                    "execute_command": "echo 'vagrant'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
                 },
                 "amazon-ebs": {
-                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                    "execute_command": "echo 'vagrant'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
                 }
             }
         }
