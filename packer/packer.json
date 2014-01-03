@@ -34,12 +34,12 @@
         },
         {
             "type": "amazon-ebs",
-            "ami_name": "cf_pipeline_base",
+            "ami_name": "cf_pipeline_base{{isotime | clean_ami_name}}",
             "instance_type": "m1.large",
             "region": "us-east-1",
             "source_ami": "ami-ef795786",
             "ssh_username": "ubuntu",
-            "ami_description": "Base AMI for cf_pipeline",
+            "ami_description": "Base AMI for cf_pipeline, created at {{isotime}}",
             "access_key": "{{user `aws_access_key`}}",
             "secret_key": "{{user `aws_secret_key`}}"
         }],
