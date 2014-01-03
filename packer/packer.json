@@ -35,7 +35,7 @@
         {
             "type": "amazon-ebs",
             "ami_name": "cf_pipeline_base{{isotime | clean_ami_name}}",
-            "instance_type": "m1.large",
+            "instance_type": "c3.xlarge",
             "region": "us-east-1",
             "source_ami": "ami-ef795786",
             "ssh_username": "ubuntu",
