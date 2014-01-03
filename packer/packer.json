@@ -73,6 +73,21 @@
                     "pipelines": {}
                 }
             }
-        }],
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "shell_provisioning/clean_disk.sh"
+            ],
+            "override": {
+                "virtualbox-iso": {
+                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                },
+                "amazon-ebs": {
+                    "execute_command": "echo 'packer'|{{.Vars}} sudo -E -S bash '{{.Path}}'"
+                }
+            }
+        }
+        ],
         "post-processors": ["vagrant"]
 }
