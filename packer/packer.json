@@ -73,5 +73,6 @@
                     "pipelines": {}
                 }
             }
-        }]
+        }],
+        "post-processors": ["vagrant"]
 }
