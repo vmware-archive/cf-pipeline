@@ -1,0 +1,87 @@
+{
+  "dependencies": {
+    "chef_rubies": {
+      "locked_version": "0.1.0",
+      "git": "https://github.com/ichilton/chef_rubies",
+      "ref": "6568cedef26eb4507bdcc458b709be5bfadfff25"
+    },
+    "chef_chruby_install": {
+      "locked_version": "0.1.1",
+      "git": "https://github.com/ichilton/chef_chruby_install",
+      "ref": "206f123678943d6ec56a2e7914eb7bab3f3c6bf5"
+    },
+    "selfsigned_certificate": {
+      "locked_version": "0.1.0",
+      "git": "git://github.com/cgravier/selfsigned_certificate.git",
+      "ref": "c5c6fc9073e0164010a5c33b43ec79f7d6245d05"
+    },
+    "cf-jenkins": {
+      "locked_version": "0.0.1",
+      "git": "https://github.com/pivotal-cf-experimental/cf-jenkins",
+      "ref": "d5406fcce78022d3d855111e3e302786ad4f3d11"
+    },
+    "windows": {
+      "locked_version": "1.11.1",
+      "git": "https://github.com/SimpleFinance/chef-windows.git",
+      "ref": "42cfe55d4946fa3d9ac41ada2c0f68e3b82cfce4"
+    },
+    "cf_pipeline": {
+      "locked_version": "0.0.1",
+      "path": "."
+    },
+    "build-essential": {
+      "locked_version": "1.4.2"
+    },
+    "chruby_install": {
+      "locked_version": "0.1.1"
+    },
+    "ruby_install": {
+      "locked_version": "0.1.0"
+    },
+    "ark": {
+      "locked_version": "0.4.2"
+    },
+    "apt": {
+      "locked_version": "2.3.4"
+    },
+    "yum": {
+      "locked_version": "3.0.4"
+    },
+    "jenkins": {
+      "locked_version": "1.2.2"
+    },
+    "java": {
+      "locked_version": "1.17.4"
+    },
+    "aws": {
+      "locked_version": "1.0.0"
+    },
+    "runit": {
+      "locked_version": "1.5.8"
+    },
+    "yum-epel": {
+      "locked_version": "0.2.0"
+    },
+    "apache2": {
+      "locked_version": "1.8.14"
+    },
+    "nginx": {
+      "locked_version": "2.2.0"
+    },
+    "bluepill": {
+      "locked_version": "2.3.1"
+    },
+    "rsyslog": {
+      "locked_version": "1.10.2"
+    },
+    "ohai": {
+      "locked_version": "1.1.12"
+    },
+    "iptables": {
+      "locked_version": "0.12.0"
+    },
+    "chef_handler": {
+      "locked_version": "1.1.4"
+    }
+  }
+}

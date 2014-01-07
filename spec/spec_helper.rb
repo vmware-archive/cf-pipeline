@@ -1,5 +1,11 @@
 require 'chefspec'
-require 'chefspec/librarian'
+# require 'chefspec/berkshelf'
+require 'berkshelf'
+
+Berkshelf.ui.mute do
+  ENV['BERKSHELF_PATH'] = 'vendor'
+  Berkshelf::Berksfile.from_file('Berksfile').install
+end
 
 PROJECT_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH << File.join(PROJECT_ROOT, 'lib')

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'librarian-chef'
+gem 'berkshelf', github: "berkshelf/berkshelf"
 gem 'foodcritic'
 
 group :test do
