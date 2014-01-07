@@ -1,5 +1,5 @@
 override['jenkins']['http_proxy'] = {
-  'server_auth_method' => 'basic',
+  'server_auth_method' => false,
   'basic_auth_username' => node['cf_pipeline']['basic_auth_username'],
   'basic_auth_password' => node['cf_pipeline']['basic_auth_password'],
   'ssl' => {
