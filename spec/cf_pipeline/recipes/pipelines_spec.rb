@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'cf-jenkins::pipelines' do
+describe 'cf_pipeline::pipelines' do
   subject(:chef_run) do
     ChefSpec::Runner.new(step_into: ['jenkins_job']) do |node|
       node.set['jenkins'] = {
@@ -8,7 +8,7 @@ describe 'cf-jenkins::pipelines' do
           'home' => fake_jenkins_home
         }
       }
-      node.set['cf_jenkins'] = {
+      node.set['cf_pipeline'] = {
         'pipelines' => {
           'example_project' => {
             'git' => 'https://github.com/org/release.git',
