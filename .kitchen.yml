@@ -19,6 +19,8 @@ suites:
     cf_pipeline:
       basic_auth_username: ci
       basic_auth_password: foobar
+      github_oauth:
+        enable: false
       pipelines:
         garden:
           git: https://github.com/vito/garden-pool-spike.git

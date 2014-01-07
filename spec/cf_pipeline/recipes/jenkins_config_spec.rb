@@ -31,6 +31,11 @@ describe 'cf_pipeline::jenkins_config' do
     FileUtils.touch(jenkins_config_path)
   end
 
+  it 'restarts Jenkins because it is modifying the config file' do
+    resource = chef_run.template(jenkins_config_path)
+    expect(resource).to notify('service[jenkins]').to(:restart)
+  end
+
   it 'creates the Jenkins configuration file, with security enabled by default' do
     vars = {
       'use_security' => true,
@@ -50,7 +55,7 @@ describe 'cf_pipeline::jenkins_config' do
   context 'when security is disabled by the client' do
     let(:oauth_config) do
       {
-        'use_security' => false,
+        'enable' => false,
         'organization' => 'my-org',
         'admins' => ['octocat'],
         'client_id' => 'the_client_id',
