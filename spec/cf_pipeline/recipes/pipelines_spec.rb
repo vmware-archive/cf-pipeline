@@ -81,16 +81,21 @@ set -x
           mode: 00644,
         ),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(command_for[options.fetch(:command)]),
-        ChefSpec::Matchers::ResourceMatcher.new('jenkins_job', 'update', expected_job_name).with(config: config_path),
       ]
     }
 
     match do |chef_run|
-      matchers_for[chef_run].all? {|matcher| matcher.matches?(chef_run)}
+      matchers_for[chef_run].all? {|matcher| matcher.matches?(chef_run)} &&
+        ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed.
+        matches?(chef_run.file(config_path))
     end
 
     failure_message_for_should do |chef_run|
-      matchers_for[chef_run].find {|matcher| !matcher.matches?(chef_run)}.failure_message_for_should
+      restart_matcher = ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed
+      failed_matcher = matchers_for[chef_run].find {|matcher| !matcher.matches?(chef_run)}
+      failed_matcher ||= restart_matcher unless restart_matcher.matches?(chef_run.file(config_path))
+
+      failed_matcher.failure_message_for_should
     end
 
     description do

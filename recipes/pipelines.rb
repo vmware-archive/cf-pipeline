@@ -1,4 +1,5 @@
 chef_gem 'builder'
+include_recipe 'jenkins::server'
 
 def add_jenkins_job_for_deploy(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
@@ -53,11 +54,8 @@ def add_jenkins_job_directly(job, name, step)
     owner node['jenkins']['server']['user']
     group node['jenkins']['server']['user']
     mode 00644
-  end
 
-  jenkins_job "#{name}-#{step}" do
-    config job_config
-    action :update
+    notifies :restart, 'service[jenkins]', :delayed
   end
 end
 
