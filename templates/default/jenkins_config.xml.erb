@@ -31,6 +31,7 @@
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
   <workspaceDir>${ITEM_ROOTDIR}/workspace</workspaceDir>
   <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <systemMessage>cf-jenkins version: <%= @cf_jenkins_version %> | cf_pipeline version: <%= @cf_pipeline_version %></systemMessage>
   <markupFormatter class="hudson.markup.RawHtmlMarkupFormatter">
     <disableSyntaxHighlighting>false</disableSyntaxHighlighting>
   </markupFormatter>

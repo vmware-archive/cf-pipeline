@@ -25,6 +25,8 @@ describe 'cf_pipeline::jenkins_config' do
   let(:jenkins_group) { jenkins_user }
   let(:fake_jenkins_home) { Dir.mktmpdir }
   let(:jenkins_config_path) { File.join(fake_jenkins_home, 'config.xml') }
+  let(:cf_pipeline_version) { chef_run.run_context.cookbook_collection['cf_pipeline'].metadata.version }
+  let(:cf_jenkins_version) { chef_run.run_context.cookbook_collection['cf-jenkins'].metadata.version }
 
   before do
     FileUtils.mkdir_p(File.dirname(jenkins_config_path))
@@ -42,7 +44,9 @@ describe 'cf_pipeline::jenkins_config' do
       'github_user_org' => 'my-org',
       'github_user_admins' => ['octocat'],
       'github_client_id' => 'the_client_id',
-      'github_client_secret' => 'the_client_secret'
+      'github_client_secret' => 'the_client_secret',
+      'cf_pipeline_version' => cf_pipeline_version,
+      'cf_jenkins_version' => cf_jenkins_version,
     }
     expect(chef_run).to create_template(jenkins_config_path).
       with(source: 'jenkins_config.xml.erb',
@@ -69,7 +73,9 @@ describe 'cf_pipeline::jenkins_config' do
         'github_user_org' => 'my-org',
         'github_user_admins' => ['octocat'],
         'github_client_id' => 'the_client_id',
-        'github_client_secret' => 'the_client_secret'
+        'github_client_secret' => 'the_client_secret',
+        'cf_pipeline_version' => cf_pipeline_version,
+        'cf_jenkins_version' => cf_jenkins_version,
       }
       expect(chef_run).to create_template(jenkins_config_path).
         with(source: 'jenkins_config.xml.erb',
