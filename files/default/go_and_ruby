@@ -4,4 +4,4 @@ source /usr/local/share/chruby/chruby.sh
 chruby 1.9.3
 
 source /usr/local/share/gvm/scripts/gvm
-gvm use go1.2
+gvm use go1.2 > /dev/null

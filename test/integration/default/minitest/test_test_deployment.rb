@@ -3,7 +3,6 @@ require 'tmpdir'
 
 describe "test_deployment script" do
   it "calls script/run_system_tests" do
-    skip # not ready for this yet
     Dir.mktmpdir do |dir|
       Dir.chdir dir do
         FileUtils.mkdir 'script'
