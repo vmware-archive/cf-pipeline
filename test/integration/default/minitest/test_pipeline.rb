@@ -6,7 +6,7 @@ require 'rexml/xpath'
 describe 'pipeline support' do
   it 'creates a deploy job for a configured project' do
     assert find_job('garden-deploy'), "Couldn't find expected job. Found these: #{all_jobs.map {|job| job['name']}}"
-    expected_command = "cf_deploy --non-interactive --release-name garden --release-repo https://github.com/vito/garden-pool-spike.git --release-ref master --infrastructure warden --deployments-repo https://github.com/cloudfoundry/deployments-foo.git --deployment-name bosh_lite"
+    expected_command = "pipeline_deploy"
     assert_match expected_command, config_for('garden-deploy').shell_command,
       "Shell command was incorrect"
   end
