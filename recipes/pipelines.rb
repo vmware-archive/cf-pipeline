@@ -4,40 +4,29 @@ include_recipe 'jenkins::server'
 def add_jenkins_job_for_deploy(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
 
-  options = %W(
-    --non-interactive
-    --release-name #{name}
-    --release-repo #{pipeline_settings.fetch('git')}
-    --release-ref #{pipeline_settings.fetch('release_ref')}
-    --infrastructure #{pipeline_settings.fetch('infrastructure')}
-    --deployments-repo #{pipeline_settings.fetch('deployments_repo')}
-    --deployment-name #{pipeline_settings.fetch('deployment_name')}
-    --rebase
-  ).join(' ')
-
-  job.command = command_for_sub_command("SHELL=/bin/bash bundle exec cf_deploy #{options}")
+  job.command = command_for_sub_command("pipeline_deploy")
   job.downstream_jobs = ["#{name}-system_tests"]
 
-  add_jenkins_job_directly(job, name, 'deploy')
+  add_jenkins_job_directly(job, name, 'deploy', pipeline_settings)
 end
 
 def add_jenkins_job_for_system_tests(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
-  job.command = command_for_sub_command('script/run_system_tests')
+  job.command = command_for_sub_command('test_deployment')
   job.downstream_jobs = ["#{name}-release_tarball"]
 
-  add_jenkins_job_directly(job, name, 'system_tests')
+  add_jenkins_job_directly(job, name, 'system_tests', pipeline_settings)
 end
 
 def add_jenkins_job_for_release_tarball(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
-  job.command = command_for_sub_command("rm -rf dev_releases; echo #{name} | bosh create release --with-tarball --force")
+  job.command = command_for_sub_command("create_release_tarball")
   job.artifact_glob = 'dev_releases/*.tgz'
 
-  add_jenkins_job_directly(job, name, 'release_tarball')
+  add_jenkins_job_directly(job, name, 'release_tarball', pipeline_settings)
 end
 
-def add_jenkins_job_directly(job, name, step)
+def add_jenkins_job_directly(job, name, step, pipeline_settings)
   job_dir = ::File.join(node['jenkins']['server']['home'], 'jobs', "#{name}-#{step}")
   job_config = ::File.join(job_dir, 'config.xml')
 
@@ -47,6 +36,15 @@ def add_jenkins_job_directly(job, name, step)
     mode 00755
     action :create
   end
+
+  job.env = {
+    'RELEASE_NAME' => name,
+    'RELEASE_REPO' => pipeline_settings.fetch('git'),
+    'RELEASE_REF' => pipeline_settings.fetch('release_ref'),
+    'INFRASTRUCTURE' => pipeline_settings.fetch('infrastructure'),
+    'DEPLOYMENTS_REPO' => pipeline_settings.fetch('deployments_repo'),
+    'DEPLOYMENT_NAME' => pipeline_settings.fetch('deployment_name'),
+  }
 
   file job_config do
     content job.to_xml
@@ -69,15 +67,6 @@ end
 def command_for_sub_command(sub_command)
   <<-COMMAND
 #!/bin/bash
-set -x
-
-source /usr/local/share/chruby/chruby.sh
-chruby 1.9.3
-gem install bundler --no-ri --no-rdoc --conservative
-bundle install
-
-source /usr/local/share/gvm/scripts/gvm
-gvm use go1.2
 
 #{sub_command}
   COMMAND

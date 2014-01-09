@@ -16,9 +16,6 @@ describe 'cf_pipeline::pipelines' do
             'infrastructure' => 'warden',
             'deployments_repo' => 'https://github.com/org/deployments.git',
             'deployment_name' => 'my_environment',
-            'steps' => [
-              'deploy'
-            ]
           }
         }
       }
@@ -48,25 +45,10 @@ describe 'cf_pipeline::pipelines' do
     job_directory = ::File.join(options.fetch(:in), 'jobs', expected_job_name)
     config_path = ::File.join(job_directory, 'config.xml')
 
-    ruby_setup = <<-BASH
-source /usr/local/share/chruby/chruby.sh
-chruby 1.9.3
-gem install bundler --no-ri --no-rdoc --conservative
-bundle install
-    BASH
-
-    go_setup = <<-BASH
-source /usr/local/share/gvm/scripts/gvm
-gvm use go1.2
-    BASH
-
     command_for = ->(sub_command) {
       <<-BASH
 #!/bin/bash
-set -x
 
-#{ruby_setup}
-#{go_setup}
 #{sub_command}
       BASH
     }
@@ -80,6 +62,7 @@ set -x
           group: jenkins_group,
           mode: 00644,
         ),
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)), # if env????
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(command_for[options.fetch(:command)]),
       ]
     }
@@ -103,28 +86,32 @@ set -x
     end
   end
 
-  let(:deploy_command) do
-    cf_deploy_options = %w(
-    --non-interactive
-    --release-name example_project
-    --release-repo https://github.com/org/release.git
-    --release-ref master
-    --infrastructure warden
-    --deployments-repo https://github.com/org/deployments.git
-    --deployment-name my_environment
-    --rebase
-    ).join(' ')
-
-    "SHELL=/bin/bash bundle exec cf_deploy #{cf_deploy_options}"
+  let(:expected_env) do
+    (<<-SH
+RELEASE_NAME=example_project
+RELEASE_REPO=https://github.com/org/release.git
+RELEASE_REF=master
+INFRASTRUCTURE=warden
+DEPLOYMENTS_REPO=https://github.com/org/deployments.git
+DEPLOYMENT_NAME=my_environment
+    SH
+    ).strip
   end
 
-  it { should create_jenkins_job('example_project-deploy', in: fake_jenkins_home, command: deploy_command) }
+  it { should create_jenkins_job('example_project-deploy',
+                                 in: fake_jenkins_home,
+                                 env: expected_env,
+                                 command: "pipeline_deploy") }
 
-  let(:test_command) { "script/run_system_tests" }
-  it { should create_jenkins_job('example_project-system_tests', in: fake_jenkins_home, command: test_command) }
+  it { should create_jenkins_job('example_project-system_tests',
+                                 in: fake_jenkins_home,
+                                 env: expected_env,
+                                 command: "test_deployment" ) }
 
-  let(:release_command) { "rm -rf dev_releases; echo example_project | bosh create release --with-tarball --force" }
-  it { should create_jenkins_job('example_project-release_tarball', in: fake_jenkins_home, command: release_command) }
+  it { should create_jenkins_job('example_project-release_tarball',
+                                 env: expected_env,
+                                 in: fake_jenkins_home,
+                                 command: "create_release_tarball" ) }
 
   matcher(:archive_artifacts) do |glob, options|
     job_directory = ::File.join(options.fetch(:in), 'jobs', options.fetch(:project))

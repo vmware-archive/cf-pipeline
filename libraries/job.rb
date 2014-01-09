@@ -1,9 +1,10 @@
 module JenkinsClient
   class Job
-    attr_accessor :artifact_glob, :command, :description, :downstream_jobs, :git_repo_url, :git_repo_branch
+    attr_accessor :artifact_glob, :command, :description, :downstream_jobs, :env, :git_repo_url, :git_repo_branch
 
-    def downstream_jobs
-      @downstream_jobs || []
+    def initialize
+      @downstream_jobs = []
+      @env = {}
     end
 
     def to_xml
@@ -35,14 +36,25 @@ module JenkinsClient
         end
 
         xml.buildWrappers do
-          xml.tag!('hudson.plugins.ansicolor.AnsiColorBuildWrapper', plugin: 'ansicolor@0.3.1') do
-            xml.colorMapName 'xterm'
-          end
+          build_wrappers(xml)
         end
       end
     end
 
     private
+
+    def build_wrappers(xml)
+      xml.tag!('hudson.plugins.ansicolor.AnsiColorBuildWrapper', plugin: 'ansicolor@0.3.1') do
+        xml.colorMapName 'xterm'
+      end
+
+      xml.EnvInjectBuildWrapper(plugin: 'envinject@1.89') do
+        xml.info do
+          xml.propertiesContent(env.map {|k, v| "#{k}=#{v}"}.join("\n"))
+          xml.loadFilesFromMaster(false)
+        end
+      end
+    end
 
     def publish_artifacts(xml, glob)
       return if glob.nil?
