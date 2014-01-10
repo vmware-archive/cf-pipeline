@@ -4,5 +4,5 @@ rvm:
   - 1.9.3-p484
 
 script:
-  - bundle exec foodcritic .
+  - bundle exec foodcritic -f any .
   - bundle exec rspec --format documentation
