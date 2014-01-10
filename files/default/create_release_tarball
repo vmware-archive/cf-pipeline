@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source `which go_and_ruby`
+
+rm -rf dev_releases
+echo $RELEASE_NAME | bosh create release --with-tarball --force
