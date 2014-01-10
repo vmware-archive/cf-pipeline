@@ -27,7 +27,7 @@ describe 'cf_pipeline::cf_deployer' do
     )
 
     expect(chef_run).to run_bash('install cf_deployer gem').with(
-      code: 'source `which go_and_ruby` && gem install --local cf_deployer-*.gem',
+      code: 'source `which go_and_ruby` && gem install --both dogapi bosh_cli cf cf_deployer-*.gem',
       cwd: dest_dir
     )
   end

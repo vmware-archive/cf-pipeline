@@ -15,6 +15,6 @@ bash 'build cf_deployer gem' do
 end
 
 bash 'install cf_deployer gem' do
-  code 'source `which go_and_ruby` && gem install --local cf_deployer-*.gem'
+  code 'source `which go_and_ruby` && gem install --both dogapi bosh_cli cf cf_deployer-*.gem'
   cwd dest_dir
 end
