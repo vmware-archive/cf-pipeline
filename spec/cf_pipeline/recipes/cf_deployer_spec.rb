@@ -17,17 +17,17 @@ describe 'cf_pipeline::cf_deployer' do
     )
 
     expect(chef_run).to run_bash('remove old gem files').with(
-      command: 'rm -f *.gem',
+      code: 'rm -f *.gem',
       cwd: dest_dir
     )
 
     expect(chef_run).to run_bash('build cf_deployer gem').with(
-      command: 'source `which go_and_ruby` && gem build cf_deployer.gemspec',
+      code: 'source `which go_and_ruby` && gem build cf_deployer.gemspec',
       cwd: dest_dir
     )
 
     expect(chef_run).to run_bash('install cf_deployer gem').with(
-      command: 'source `which go_and_ruby` && gem install --local cf_deployer-*.gem',
+      code: 'source `which go_and_ruby` && gem install --local cf_deployer-*.gem',
       cwd: dest_dir
     )
   end
