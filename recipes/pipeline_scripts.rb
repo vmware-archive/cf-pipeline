@@ -21,3 +21,5 @@ cookbook_file "release tarball script" do
   mode 0755
   source 'create_release_tarball'
 end
+
+include_recipe 'cf_pipeline::cf_deployer'
