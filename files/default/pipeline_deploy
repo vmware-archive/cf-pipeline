@@ -2,11 +2,9 @@
 
 source `which go_and_ruby`
 
-gem install bundler --no-rdoc --no-ri --conservative
+set -x
 
-bundle install
-
-SHELL=/bin/bash bundle exec cf_deploy \
+SHELL=/bin/bash cf_deploy \
   --non-interactive \
   --release-name $RELEASE_NAME \
   --release-repo $RELEASE_REPO \
