@@ -45,14 +45,6 @@ describe 'cf_pipeline::pipelines' do
     job_directory = ::File.join(options.fetch(:in), 'jobs', expected_job_name)
     config_path = ::File.join(job_directory, 'config.xml')
 
-    command_for = ->(sub_command) {
-      <<-BASH
-#!/bin/bash
-
-#{sub_command}
-      BASH
-    }
-
     matchers_for = ->(chef_run) {
       jenkins_user = jenkins_group = chef_run.node['jenkins']['server']['user']
       [
@@ -62,8 +54,8 @@ describe 'cf_pipeline::pipelines' do
           group: jenkins_group,
           mode: 00644,
         ),
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)), # if env????
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(command_for[options.fetch(:command)]),
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)),
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
       ]
     }
 

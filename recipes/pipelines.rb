@@ -4,7 +4,7 @@ include_recipe 'jenkins::server'
 def add_jenkins_job_for_deploy(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
 
-  job.command = command_for_sub_command("pipeline_deploy")
+  job.command = "pipeline_deploy"
   job.downstream_jobs = ["#{name}-system_tests"]
 
   add_jenkins_job_directly(job, name, 'deploy', pipeline_settings)
@@ -12,7 +12,7 @@ end
 
 def add_jenkins_job_for_system_tests(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
-  job.command = command_for_sub_command('test_deployment')
+  job.command = 'test_deployment'
   job.downstream_jobs = ["#{name}-release_tarball"]
 
   add_jenkins_job_directly(job, name, 'system_tests', pipeline_settings)
@@ -20,7 +20,7 @@ end
 
 def add_jenkins_job_for_release_tarball(name, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
-  job.command = command_for_sub_command("create_release_tarball")
+  job.command = "create_release_tarball"
   job.artifact_glob = 'dev_releases/*.tgz'
 
   add_jenkins_job_directly(job, name, 'release_tarball', pipeline_settings)
@@ -62,14 +62,6 @@ def bare_jenkins_job(pipeline_settings)
   job.git_repo_url = pipeline_settings.fetch('git')
   job.git_repo_branch = pipeline_settings.fetch('release_ref')
   job
-end
-
-def command_for_sub_command(sub_command)
-  <<-COMMAND
-#!/bin/bash
-
-#{sub_command}
-  COMMAND
 end
 
 node['cf_pipeline']['pipelines'].each do |name, pipeline_settings|
