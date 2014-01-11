@@ -22,7 +22,7 @@
                 "initrd=/install/initrd.gz -- <enter>"
             ],
             "http_directory": "http",
-            "disk_size": 40960,
+            "disk_size": 102400,
             "vboxmanage": [
                 ["modifyvm", "{{.Name}}", "--memory", "2048"],
                 ["modifyvm", "{{.Name}}", "--cpus", "4"]
