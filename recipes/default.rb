@@ -2,6 +2,7 @@ include_recipe 'apt'
 
 include_recipe 'cf-jenkins::gvm'
 include_recipe 'chef_rubies'
+include_recipe 'cf_pipeline::packages'
 
 include_recipe 'cf_pipeline::pipeline_scripts'
 
