@@ -68,8 +68,6 @@
                 ],
                 "cf_pipeline": {
                     "ssl_passphrase": "whatever",
-                    "basic_auth_username": "jenkins",
-                    "basic_auth_password": "jenkins",
                     "pipelines": {}
                 }
             }
