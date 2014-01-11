@@ -81,11 +81,13 @@ GIT
 GIT
   remote: https://github.com/pivotal-cf-experimental/cf-jenkins
   ref: master
-  sha: d5406fcce78022d3d855111e3e302786ad4f3d11
+  sha: 6dfdc62eae9b5991f21dc4cad7f12c86f4d6eaff
   specs:
-    cf-jenkins (0.0.1)
+    cf-jenkins (0.0.2)
       apt (>= 0.0.0)
+      aws (>= 0.0.0)
       chef_chruby_install (>= 0.0.0)
+      chef_handler (>= 0.0.0)
       chef_rubies (>= 0.0.0)
       jenkins (>= 0.0.0)
       selfsigned_certificate (>= 0.0.0)
@@ -93,8 +95,11 @@ GIT
 PATH
   remote: .
   specs:
-    cf_pipeline (0.0.1)
+    cf_pipeline (0.0.5)
+      apt (>= 0.0.0)
       cf-jenkins (>= 0.0.0)
+      chef_rubies (>= 0.0.0)
+      jenkins (>= 0.0.0)
 
 DEPENDENCIES
   cf-jenkins (>= 0)
