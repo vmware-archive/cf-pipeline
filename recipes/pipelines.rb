@@ -38,12 +38,12 @@ def add_jenkins_job_directly(job, name, step, pipeline_settings)
   end
 
   job.env = {
-    'RELEASE_NAME' => name,
-    'RELEASE_REPO' => pipeline_settings.fetch('git'),
-    'RELEASE_REF' => pipeline_settings.fetch('release_ref'),
-    'INFRASTRUCTURE' => pipeline_settings.fetch('infrastructure'),
-    'DEPLOYMENTS_REPO' => pipeline_settings.fetch('deployments_repo'),
-    'DEPLOYMENT_NAME' => pipeline_settings.fetch('deployment_name'),
+    'PIPELINE_RELEASE_NAME' => name,
+    'PIPELINE_RELEASE_REPO' => pipeline_settings.fetch('git'),
+    'PIPELINE_RELEASE_REF' => pipeline_settings.fetch('release_ref'),
+    'PIPELINE_INFRASTRUCTURE' => pipeline_settings.fetch('infrastructure'),
+    'PIPELINE_DEPLOYMENTS_REPO' => pipeline_settings.fetch('deployments_repo'),
+    'PIPELINE_DEPLOYMENT_NAME' => pipeline_settings.fetch('deployment_name'),
   }
 
   file job_config do

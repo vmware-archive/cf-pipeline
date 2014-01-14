@@ -2,43 +2,36 @@ require 'minitest/autorun'
 require 'tmpdir'
 
 describe "pipeline_deploy script" do
-  it "bundles, then calls cf_deploy with the right options, using the right environment variables" do
-    in_tmp_dir do
-      make_gemfile_for_fake_cf_deployer
+  it "calls cf_deploy with the right options, using the right environment variables" do
+    orig_path = '/opt/rubies/ruby-1.9.3-p484/bin/cf_deploy'
+    backup_path = "#{orig_path}.bak"
+    begin
+      FileUtils.mv(orig_path, backup_path) if File.exists?(orig_path)
+      in_tmp_dir do
+        make_fake_cf_deployer
 
-      env = {
-        'RELEASE_NAME' => 'my_release_name',
-        'RELEASE_REPO' => 'my_release_repo',
-        'RELEASE_REF' => 'my_release_ref',
-        'INFRASTRUCTURE' => 'my_infrastructure',
-        'DEPLOYMENTS_REPO' => 'my_deployments_repo',
-        'DEPLOYMENT_NAME' => 'my_deployment_name',
-      }
+        env = {
+          'PATH' => "#{File.join(Dir.pwd, 'bin')}:#{ENV['PATH']}",
+          'PIPELINE_RELEASE_NAME' => 'my_release_name',
+          'PIPELINE_RELEASE_REPO' => 'my_release_repo',
+          'PIPELINE_RELEASE_REF' => 'my_release_ref',
+          'PIPELINE_INFRASTRUCTURE' => 'my_infrastructure',
+          'PIPELINE_DEPLOYMENTS_REPO' => 'my_deployments_repo',
+          'PIPELINE_DEPLOYMENT_NAME' => 'my_deployment_name',
+        }
 
-      system(env, 'pipeline_deploy > out')
+        system(env, 'pipeline_deploy > out')
 
-      assert_match "my_release_name my_release_repo my_release_ref my_infrastructure my_deployments_repo my_deployment_name true true", File.read('out')
+        assert_match "my_release_name my_release_repo my_release_ref my_infrastructure my_deployments_repo my_deployment_name true true", File.read('out')
+      end
+    ensure
+      FileUtils.mv(backup_path, orig_path) if File.exists?(backup_path)
     end
   end
 
-  def make_gemfile_for_fake_cf_deployer
-    write 'Gemfile', gemfile_with_cf_deployer
-
-    FileUtils.mkdir_p 'cf-deployer/bin'
-    write 'cf-deployer/cf-deployer.gemspec', fake_cf_deployer_gemspec
-    write 'cf-deployer/bin/cf_deploy', option_echoing_script, 0755
-  end
-
-  def fake_cf_deployer_gemspec
-    <<-GEMSPEC
-Gem::Specification.new do |s|
-  s.name        = "cf_deployer"
-  s.authors     = %w{An Imposter}
-  s.summary     = "a fake gem"
-  s.version     = "0.3.0"
-  s.executables = %w{cf_deploy}
-end
-    GEMSPEC
+  def make_fake_cf_deployer
+    FileUtils.mkdir_p 'bin'
+    write 'bin/cf_deploy', option_echoing_script, 0755
   end
 
   def in_tmp_dir(&block)
@@ -55,13 +48,6 @@ end
     end
 
     FileUtils.chmod mode, path
-  end
-
-  def gemfile_with_cf_deployer
-    <<-GEMFILE
-source 'https://rubygems.org'
-gem "cf_deployer", path: "cf-deployer"
-    GEMFILE
   end
 
   def option_echoing_script

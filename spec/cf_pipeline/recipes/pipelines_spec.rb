@@ -80,12 +80,12 @@ describe 'cf_pipeline::pipelines' do
 
   let(:expected_env) do
     (<<-SH
-RELEASE_NAME=example_project
-RELEASE_REPO=https://github.com/org/release.git
-RELEASE_REF=master
-INFRASTRUCTURE=warden
-DEPLOYMENTS_REPO=https://github.com/org/deployments.git
-DEPLOYMENT_NAME=my_environment
+PIPELINE_RELEASE_NAME=example_project
+PIPELINE_RELEASE_REPO=https://github.com/org/release.git
+PIPELINE_RELEASE_REF=master
+PIPELINE_INFRASTRUCTURE=warden
+PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
+PIPELINE_DEPLOYMENT_NAME=my_environment
     SH
     ).strip
   end

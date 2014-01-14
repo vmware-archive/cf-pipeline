@@ -1,15 +1,15 @@
 #!/bin/bash
 
-source `which go_and_ruby`
+source go_and_ruby
 
 set -x
 
 SHELL=/bin/bash cf_deploy \
   --non-interactive \
-  --release-name $RELEASE_NAME \
-  --release-repo $RELEASE_REPO \
-  --release-ref $RELEASE_REF \
-  --infrastructure $INFRASTRUCTURE \
-  --deployments-repo $DEPLOYMENTS_REPO \
-  --deployment-name $DEPLOYMENT_NAME \
+  --release-name $PIPELINE_RELEASE_NAME \
+  --release-repo $PIPELINE_RELEASE_REPO \
+  --release-ref $PIPELINE_RELEASE_REF \
+  --infrastructure $PIPELINE_INFRASTRUCTURE \
+  --deployments-repo $PIPELINE_DEPLOYMENTS_REPO \
+  --deployment-name $PIPELINE_DEPLOYMENT_NAME \
   --rebase
