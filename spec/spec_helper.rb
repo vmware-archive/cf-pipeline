@@ -1,5 +1,4 @@
 require 'chefspec'
-require 'chefspec/librarian'
 
 PROJECT_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH << File.join(PROJECT_ROOT, 'lib')
@@ -19,4 +18,23 @@ RSpec.configure do |config|
   config.version = '12.04'
 
   config.include(CustomChefSpecMatchers)
+
+  config.cookbook_path = File.join(PROJECT_ROOT, 'cookbooks')
+
+  config.after(:suite) do
+    # http://stackoverflow.com/a/18923622
+    suite_failed = RSpec.world.filtered_examples.values.flatten.select {|e| e.exception}.any?
+
+    puts(%q<
+ __
+/  \   It looks like your specs are failing!
+|  |
+@  @   Make sure you have run `librarian-chef install`
+|| ||  and that your cookbooks are properly being installed
+|| ||  in the project's cookbook folder (i.e. there isn't a
+|\_/|  .librarian/chef/config file clobbering your
+\___/  $LIBRARIAN_CHEF_PATH)
+>
+    ) if suite_failed
+  end
 end
