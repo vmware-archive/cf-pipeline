@@ -5,4 +5,5 @@ rvm:
 
 script:
   - bundle exec foodcritic -f any .
+  - bundle exec librarian-chef install
   - bundle exec rspec --format documentation
