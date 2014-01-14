@@ -10,11 +10,12 @@ bash 'remove old gem files' do
 end
 
 bash 'build cf_deployer gem' do
-  code 'source `which go_and_ruby` && gem build cf_deployer.gemspec'
+  code 'source go_and_ruby && gem build cf_deployer.gemspec'
   cwd dest_dir
 end
 
 bash 'install cf_deployer gem' do
-  code 'source `which go_and_ruby` && gem install --both dogapi bosh_cli cf cf_deployer-*.gem'
+  code 'source go_and_ruby && gem install --both --conservative dogapi bosh_cli cf cf_deployer-*.gem'
   cwd dest_dir
+  creates "/opt/rubies/#{node['rubies']['list'].first.gsub(' ', '-')}/bin/cf_deploy"
 end
