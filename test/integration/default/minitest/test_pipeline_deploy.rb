@@ -1,12 +1,9 @@
 require 'minitest/autorun'
-require 'tmpdir'
+require_relative 'test_helper'
 
 describe "pipeline_deploy script" do
   it "calls cf_deploy with the right options, using the right environment variables" do
-    orig_path = '/opt/rubies/ruby-1.9.3-p484/bin/cf_deploy'
-    backup_path = "#{orig_path}.bak"
-    begin
-      FileUtils.mv(orig_path, backup_path) if File.exists?(orig_path)
+    without_file('/opt/rubies/ruby-1.9.3-p484/bin/cf_deploy') do
       in_tmp_dir do
         make_fake_cf_deployer
 
@@ -24,22 +21,12 @@ describe "pipeline_deploy script" do
 
         assert_match "my_release_name my_release_repo my_release_ref my_infrastructure my_deployments_repo my_deployment_name true true", File.read('out')
       end
-    ensure
-      FileUtils.mv(backup_path, orig_path) if File.exists?(backup_path)
     end
   end
 
   def make_fake_cf_deployer
     FileUtils.mkdir_p 'bin'
     write 'bin/cf_deploy', option_echoing_script, 0755
-  end
-
-  def in_tmp_dir(&block)
-    Dir.mktmpdir do |dir|
-      Dir.chdir dir do
-        block.call
-      end
-    end
   end
 
   def write(path, script, mode=0444)
