@@ -1,32 +1,32 @@
 chef_gem 'builder'
 include_recipe 'jenkins::server'
 
-def add_jenkins_job_for_deploy(name, pipeline_settings)
+def add_jenkins_job_for_deploy(name, env, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
 
   job.command = "pipeline_deploy"
   job.downstream_jobs = ["#{name}-system_tests"]
 
-  add_jenkins_job_directly(job, name, 'deploy', pipeline_settings)
+  add_jenkins_job_directly(job, name, 'deploy', pipeline_settings, env)
 end
 
-def add_jenkins_job_for_system_tests(name, pipeline_settings)
+def add_jenkins_job_for_system_tests(name, env, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
   job.command = 'test_deployment'
   job.downstream_jobs = ["#{name}-release_tarball"]
 
-  add_jenkins_job_directly(job, name, 'system_tests', pipeline_settings)
+  add_jenkins_job_directly(job, name, 'system_tests', pipeline_settings, env)
 end
 
-def add_jenkins_job_for_release_tarball(name, pipeline_settings)
+def add_jenkins_job_for_release_tarball(name, env, pipeline_settings)
   job = bare_jenkins_job(pipeline_settings)
   job.command = "create_release_tarball"
   job.artifact_glob = 'dev_releases/*.tgz'
 
-  add_jenkins_job_directly(job, name, 'release_tarball', pipeline_settings)
+  add_jenkins_job_directly(job, name, 'release_tarball', pipeline_settings, env)
 end
 
-def add_jenkins_job_directly(job, name, step, pipeline_settings)
+def add_jenkins_job_directly(job, name, step, pipeline_settings, extra_env)
   job_dir = ::File.join(node['jenkins']['server']['home'], 'jobs', "#{name}-#{step}")
   job_config = ::File.join(job_dir, 'config.xml')
 
@@ -44,7 +44,7 @@ def add_jenkins_job_directly(job, name, step, pipeline_settings)
     'PIPELINE_INFRASTRUCTURE' => pipeline_settings.fetch('infrastructure'),
     'PIPELINE_DEPLOYMENTS_REPO' => pipeline_settings.fetch('deployments_repo'),
     'PIPELINE_DEPLOYMENT_NAME' => pipeline_settings.fetch('deployment_name'),
-  }
+  }.merge(extra_env)
 
   file job_config do
     content job.to_xml
@@ -64,8 +64,10 @@ def bare_jenkins_job(pipeline_settings)
   job
 end
 
+env = node['cf_pipeline']['env']
+
 node['cf_pipeline']['pipelines'].each do |name, pipeline_settings|
-  add_jenkins_job_for_deploy(name, pipeline_settings)
-  add_jenkins_job_for_system_tests(name, pipeline_settings)
-  add_jenkins_job_for_release_tarball(name, pipeline_settings)
+  add_jenkins_job_for_deploy(name, env, pipeline_settings)
+  add_jenkins_job_for_system_tests(name, env, pipeline_settings)
+  add_jenkins_job_for_release_tarball(name, env, pipeline_settings)
 end

@@ -17,6 +17,9 @@ describe 'cf_pipeline::pipelines' do
             'deployments_repo' => 'https://github.com/org/deployments.git',
             'deployment_name' => 'my_environment',
           }
+        },
+        'env' => {
+          'IRC_PASSWORD' => 'hunter2'
         }
       }
     end.converge(described_recipe)
@@ -86,6 +89,7 @@ PIPELINE_RELEASE_REF=master
 PIPELINE_INFRASTRUCTURE=warden
 PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
 PIPELINE_DEPLOYMENT_NAME=my_environment
+IRC_PASSWORD=hunter2
     SH
     ).strip
   end
