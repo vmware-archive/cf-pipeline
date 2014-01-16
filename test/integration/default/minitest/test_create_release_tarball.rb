@@ -14,7 +14,7 @@ describe "create_release_tarball script" do
 
         env = {
           'PATH' => "#{fake_bosh_dir}:#{ENV['PATH']}",
-          'RELEASE_NAME' => 'name_of_the_release'
+          'PIPELINE_RELEASE_NAME' => 'name_of_the_release'
         }
 
         system(env, 'create_release_tarball > out')
