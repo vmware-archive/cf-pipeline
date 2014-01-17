@@ -2,5 +2,7 @@
 
 source go_and_ruby
 
+git submodule status | awk '{print $2}' | xargs -P10 -n1 git submodule update --init --recursive
+
 rm -rf dev_releases
 echo $PIPELINE_RELEASE_NAME | bosh create release --with-tarball --force

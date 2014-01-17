@@ -5,12 +5,16 @@ require_relative 'test_helper'
 describe "test_deployment script" do
   it "calls script/run_system_tests" do
     in_tmp_dir do
-      FileUtils.mkdir 'script'
-      write_fake_system_test_script('script/run_system_tests')
+      create_git_project_with_submodules('project')
+      Dir.chdir('project') do
+        FileUtils.mkdir 'script'
+        write_fake_system_test_script('script/run_system_tests')
 
-      system('test_deployment > out')
+        system('test_deployment > out')
+        assert_git_updated_recursive_submodules
 
-      assert_equal "Hello from system tests", File.read('out').strip
+        assert_equal "Hello from system tests", File.read('out').strip.split("\n").last
+      end
     end
   end
 
