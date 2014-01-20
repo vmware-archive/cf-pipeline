@@ -93,7 +93,7 @@ GIT
 PATH
   remote: .
   specs:
-    cf_pipeline (0.0.6)
+    cf_pipeline (0.0.7)
       apt (>= 0.0.0)
       cf-jenkins (>= 0.0.0)
       chef_rubies (>= 0.0.0)
