@@ -1,1 +1,1 @@
-node.default['cf_pipeline']['cf_deployer_ref'] = '6f0fb1bdf2ed247c4f5d8e6696ae2cfc99eb70e1'
+node.default['cf_pipeline']['cf_deployer_ref'] = '32cdcc7d8e00a344a983d911ea10f9715d8945b9'
