@@ -14,8 +14,12 @@ bash 'build cf_deployer gem' do
   cwd dest_dir
 end
 
-bash 'install cf_deployer gem' do
-  code 'source go_and_ruby && gem install --both --conservative dogapi bosh_cli cf cf_deployer-*.gem'
+bash 'install cf_deployer dependencies' do
+  code 'source go_and_ruby && gem install --remote --conservative dogapi bosh_cli cf'
   cwd dest_dir
-  creates "/opt/rubies/#{node['rubies']['list'].first.gsub(' ', '-')}/bin/cf_deploy"
+end
+
+bash 'install cf_deployer' do
+  code 'source go_and_ruby && gem install --local cf_deployer-*.gem'
+  cwd dest_dir
 end

@@ -26,9 +26,13 @@ describe 'cf_pipeline::cf_deployer' do
       cwd: dest_dir
     )
 
-    expect(chef_run).to run_bash('install cf_deployer gem').with(
-      creates: '/opt/rubies/ruby-1.9.3-p484/bin/cf_deploy',
-      code: 'source go_and_ruby && gem install --both --conservative dogapi bosh_cli cf cf_deployer-*.gem',
+    expect(chef_run).to run_bash('install cf_deployer dependencies').with(
+      code: 'source go_and_ruby && gem install --remote --conservative dogapi bosh_cli cf',
+      cwd: dest_dir
+    )
+
+    expect(chef_run).to run_bash('install cf_deployer').with(
+      code: 'source go_and_ruby && gem install --local cf_deployer-*.gem',
       cwd: dest_dir
     )
   end
