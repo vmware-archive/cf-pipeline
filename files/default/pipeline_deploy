@@ -12,4 +12,5 @@ SHELL=/bin/bash cf_deploy \
   --infrastructure $PIPELINE_INFRASTRUCTURE \
   --deployments-repo $PIPELINE_DEPLOYMENTS_REPO \
   --deployment-name $PIPELINE_DEPLOYMENT_NAME \
+  $PIPELINE_CF_DEPLOY_EXTRA_ARGS \
   --rebase
