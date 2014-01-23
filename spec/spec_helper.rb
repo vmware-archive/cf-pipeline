@@ -1,4 +1,5 @@
 require 'chefspec'
+require 'chefspec/librarian'
 
 PROJECT_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH << File.join(PROJECT_ROOT, 'lib')
@@ -29,11 +30,11 @@ RSpec.configure do |config|
  __
 /  \   It looks like your specs are failing!
 |  |
-@  @   Make sure you have run `librarian-chef install`
-|| ||  and that your cookbooks are properly being installed
-|| ||  in the project's cookbook folder (i.e. there isn't a
-|\_/|  .librarian/chef/config file clobbering your
-\___/  $LIBRARIAN_CHEF_PATH)
+@  @   RSpec is configured to automatically run `librarian-chef install`
+|| ||  but it is possible that there is a .librarian/chef/config file
+|| ||  clobbering your $LIBRARIAN_CHEF_PATH).
+|\_/|
+\___/      -- Love, Clippy
 >
     ) if suite_failed
   end
