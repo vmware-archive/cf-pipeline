@@ -65,9 +65,11 @@ def bare_jenkins_job(pipeline_settings)
 end
 
 env = node['cf_pipeline']['env']
+env_overrides = node['cf_pipeline']['env_overrides']
 
 node['cf_pipeline']['pipelines'].each do |name, pipeline_settings|
-  add_jenkins_job_for_deploy(name, env, pipeline_settings)
-  add_jenkins_job_for_system_tests(name, env, pipeline_settings)
-  add_jenkins_job_for_release_tarball(name, env, pipeline_settings)
+  merged_env = env.merge(env_overrides[name])
+  add_jenkins_job_for_deploy(name, merged_env, pipeline_settings)
+  add_jenkins_job_for_system_tests(name, merged_env, pipeline_settings)
+  add_jenkins_job_for_release_tarball(name, merged_env, pipeline_settings)
 end

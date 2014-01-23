@@ -18,7 +18,7 @@ describe 'cf_pipeline::pipelines' do
   let(:example_project_config) { default_example_project_config }
 
   subject(:chef_run) do
-    ChefSpec::Runner.new(step_into: ['jenkins_job']) do |node|
+    ChefSpec::Runner.new do |node|
       node.set['jenkins'] = {
         'server' => {
           'home' => fake_jenkins_home
@@ -29,8 +29,18 @@ describe 'cf_pipeline::pipelines' do
           'example_project' => example_project_config
         },
         'env' => {
-          'IRC_PASSWORD' => 'hunter2'
+          'IRC_PASSWORD' => 'hunter2',
+          'FAVORITE_FOOD' => 'rocks'
+        },
+        'env_overrides' => {
+          'example_project' => {
+            'FAVORITE_FOOD' => 'clouds'
+          },
+          'other_project' => {
+            'IRC_PASSWORD' => '*******'
+          }
         }
+
       }
     end.converge(described_recipe)
   end
@@ -54,7 +64,65 @@ describe 'cf_pipeline::pipelines' do
     Chef::REST::RESTRequest.stub(new: fake_chef_rest_for_jenkins_check)
   end
 
-  matcher(:create_jenkins_job) do |expected_job_name, options|
+  shared_examples "creates the expected jenkins jobs" do
+    it { should create_pipeline_jenkins_job('example_project-deploy',
+                                   in: fake_jenkins_home,
+                                   env: expected_env,
+                                   command: "pipeline_deploy") }
+
+    it { should create_pipeline_jenkins_job('example_project-system_tests',
+                                   in: fake_jenkins_home,
+                                   env: expected_env,
+                                   command: "test_deployment" ) }
+
+    it { should create_pipeline_jenkins_job('example_project-release_tarball',
+                                   env: expected_env,
+                                   in: fake_jenkins_home,
+                                   command: "create_release_tarball" ) }
+  end
+
+  context 'when the release name is not overridden' do
+    let(:expected_env) do
+      (<<-SH
+PIPELINE_RELEASE_NAME=example_project
+PIPELINE_RELEASE_REPO=https://github.com/org/release.git
+PIPELINE_RELEASE_REF=master
+PIPELINE_INFRASTRUCTURE=warden
+PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
+PIPELINE_DEPLOYMENT_NAME=my_environment
+IRC_PASSWORD=hunter2
+FAVORITE_FOOD=clouds
+      SH
+      ).strip
+    end
+
+    include_examples "creates the expected jenkins jobs"
+  end
+
+  context 'when the release name is overridden' do
+    let(:example_project_config) { example_project_config_with_name_override }
+    let(:expected_env) do
+      (<<-SH
+PIPELINE_RELEASE_NAME=new_release_name
+PIPELINE_RELEASE_REPO=https://github.com/org/release.git
+PIPELINE_RELEASE_REF=master
+PIPELINE_INFRASTRUCTURE=warden
+PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
+PIPELINE_DEPLOYMENT_NAME=my_environment
+IRC_PASSWORD=hunter2
+FAVORITE_FOOD=clouds
+      SH
+      ).strip
+    end
+
+    include_examples "creates the expected jenkins jobs"
+  end
+
+  it { should archive_artifacts('dev_releases/*.tgz',
+                                in: fake_jenkins_home,
+                                project: 'example_project-release_tarball') }
+
+  matcher(:create_pipeline_jenkins_job) do |expected_job_name, options|
     job_directory = ::File.join(options.fetch(:in), 'jobs', expected_job_name)
     config_path = ::File.join(job_directory, 'config.xml')
 
@@ -75,7 +143,7 @@ describe 'cf_pipeline::pipelines' do
     match do |chef_run|
       matchers_for[chef_run].all? {|matcher| matcher.matches?(chef_run)} &&
         ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed.
-        matches?(chef_run.file(config_path))
+          matches?(chef_run.file(config_path))
     end
 
     failure_message_for_should do |chef_run|
@@ -89,67 +157,6 @@ describe 'cf_pipeline::pipelines' do
     description do
       "create a pipeline jenkins job for #{expected_job_name}"
     end
-  end
-
-  context 'when the release name is not overridden' do
-    let(:expected_env) do
-      (<<-SH
-PIPELINE_RELEASE_NAME=example_project
-PIPELINE_RELEASE_REPO=https://github.com/org/release.git
-PIPELINE_RELEASE_REF=master
-PIPELINE_INFRASTRUCTURE=warden
-PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
-PIPELINE_DEPLOYMENT_NAME=my_environment
-IRC_PASSWORD=hunter2
-      SH
-      ).strip
-    end
-
-    it { should create_jenkins_job('example_project-deploy',
-                                   in: fake_jenkins_home,
-                                   env: expected_env,
-                                   command: "pipeline_deploy") }
-
-    it { should create_jenkins_job('example_project-system_tests',
-                                   in: fake_jenkins_home,
-                                   env: expected_env,
-                                   command: "test_deployment" ) }
-
-    it { should create_jenkins_job('example_project-release_tarball',
-                                   env: expected_env,
-                                   in: fake_jenkins_home,
-                                   command: "create_release_tarball" ) }
-  end
-
-  context 'when the release name is overridden' do
-    let(:example_project_config) { example_project_config_with_name_override }
-    let(:expected_env) do
-      (<<-SH
-PIPELINE_RELEASE_NAME=new_release_name
-PIPELINE_RELEASE_REPO=https://github.com/org/release.git
-PIPELINE_RELEASE_REF=master
-PIPELINE_INFRASTRUCTURE=warden
-PIPELINE_DEPLOYMENTS_REPO=https://github.com/org/deployments.git
-PIPELINE_DEPLOYMENT_NAME=my_environment
-IRC_PASSWORD=hunter2
-      SH
-      ).strip
-    end
-
-    it { should create_jenkins_job('example_project-deploy',
-                                   in: fake_jenkins_home,
-                                   env: expected_env,
-                                   command: "pipeline_deploy") }
-
-    it { should create_jenkins_job('example_project-system_tests',
-                                   in: fake_jenkins_home,
-                                   env: expected_env,
-                                   command: "test_deployment" ) }
-
-    it { should create_jenkins_job('example_project-release_tarball',
-                                   env: expected_env,
-                                   in: fake_jenkins_home,
-                                   command: "create_release_tarball" ) }
   end
 
   matcher(:archive_artifacts) do |glob, options|
@@ -167,8 +174,4 @@ IRC_PASSWORD=hunter2
 
     description { "archive artifacts with glob #{glob} in #{options.fetch(:project)}" }
   end
-
-  it { should archive_artifacts('dev_releases/*.tgz',
-                                in: fake_jenkins_home,
-                                project: 'example_project-release_tarball') }
 end
