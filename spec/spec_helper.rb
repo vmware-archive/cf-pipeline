@@ -32,7 +32,7 @@ RSpec.configure do |config|
 |  |
 @  @   RSpec is configured to automatically run `librarian-chef install`
 || ||  but it is possible that there is a .librarian/chef/config file
-|| ||  clobbering your $LIBRARIAN_CHEF_PATH).
+|| ||  clobbering your $LIBRARIAN_CHEF_PATH.
 |\_/|
 \___/      -- Love, Clippy
 >
