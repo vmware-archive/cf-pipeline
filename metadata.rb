@@ -1,5 +1,5 @@
 name 'cf_pipeline'
-version '0.0.12'
+version '0.0.13'
 
 depends 'apt'
 depends 'cf-jenkins'
