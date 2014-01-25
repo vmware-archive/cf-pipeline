@@ -16,7 +16,7 @@ describe 'cf_pipeline::ruby' do
 
   it 'uninstalls the system rake gem, which would otherwise cause later problems with bundle package' do
     expect(chef_run).to run_bash('remove system rake gem').with(
-      code: 'source /usr/local/share/chruby/chruby.sh && gem uninstall rake --all --ignore-dependencies --executables',
+      code: 'source /usr/local/share/chruby/chruby.sh && chruby 1.9.3 && gem uninstall rake --all --ignore-dependencies --executables',
     )
   end
 end
