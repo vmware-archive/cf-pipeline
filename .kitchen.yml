@@ -29,3 +29,16 @@ suites:
           infrastructure: warden
           deployments_repo: https://github.com/cloudfoundry/deployments-foo.git
           deployment_name: bosh_lite
+      jobs:
+        first:
+          git: xxx
+          git_ref: master
+          script_path: xxx
+          env: {}
+          trigger_on_success:
+            - second
+        second:
+          git: xxx
+          git_ref: master
+          script_path: xxx
+          env: {}

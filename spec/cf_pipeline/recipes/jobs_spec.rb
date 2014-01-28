@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'cf_pipeline::jobs' do
-  let(:example_job_config) do
+  let(:default_job_config) do
     {
       'git' => 'https://github.com/org/release.git',
       'git_ref' => 'master',
@@ -12,10 +12,12 @@ describe 'cf_pipeline::jobs' do
     }
   end
 
+  let(:job_config) { default_job_config }
+
   let(:job_attributes) do
     {
       'jobs' => {
-        'example_job' => example_job_config
+        'example_job' => job_config
       }
     }
   end
@@ -32,12 +34,12 @@ describe 'cf_pipeline::jobs' do
   end
 
   let(:fake_jenkins_home) { Dir.mktmpdir }
-  let(:job_config) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
+  let(:job_config_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
   let(:fake_chef_rest_for_jenkins_check) { double(Chef::REST::RESTRequest, call: double(Net::HTTPSuccess).as_null_object) }
 
   before do
-    FileUtils.mkdir_p(File.dirname(job_config))
-    FileUtils.touch(job_config)
+    FileUtils.mkdir_p(File.dirname(job_config_path))
+    FileUtils.touch(job_config_path)
 
     Chef::REST::RESTRequest.stub(new: fake_chef_rest_for_jenkins_check)
   end
@@ -50,10 +52,27 @@ FAKE_ENV=fake_env
     ).strip
   end
 
-  it { should create_user_jenkins_job('example_job',
-                                          in: fake_jenkins_home,
-                                          env: expected_env,
-                                          command: "run_user_script") }
+  context 'minimal config' do
+    it { should create_user_jenkins_job('example_job',
+                                            in: fake_jenkins_home,
+                                            env: expected_env,
+                                            downstream: [],
+                                            command: "run_user_script") }
+  end
+
+  context 'when trigger_on_success is specified' do
+    let(:job_config) do
+      config = default_job_config.dup
+      config['trigger_on_success'] = ['next_job']
+      config
+    end
+
+    it { should create_user_jenkins_job('example_job',
+                                            in: fake_jenkins_home,
+                                            env: expected_env,
+                                            downstream: ['next_job'],
+                                            command: "run_user_script") }
+  end
 
   matcher(:create_user_jenkins_job) do |expected_job_name, options|
     job_directory = ::File.join(options.fetch(:in), 'jobs', expected_job_name)
@@ -70,6 +89,7 @@ FAKE_ENV=fake_env
         ),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:downstream).join(', ')),
       ]
     }
 

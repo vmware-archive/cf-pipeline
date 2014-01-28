@@ -16,6 +16,7 @@ def add_jenkins_user_job(name, job_settings)
   job.git_repo_url = job_settings.fetch('git')
   job.git_repo_branch = job_settings.fetch('git_ref')
   job.env = ({'PIPELINE_USER_SCRIPT' => job_settings.fetch('script_path')}).merge(job_settings.fetch('env'))
+  job.downstream_jobs = job_settings.fetch('trigger_on_success', [])
   job.command = 'run_user_script'
 
   file job_config do
