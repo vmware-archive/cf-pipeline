@@ -36,4 +36,12 @@ describe 'cf_pipeline::pipeline_scripts' do
       source: 'create_release_tarball'
     )
   end
+
+  it "creates a run user script" do
+    expect(chef_run).to create_cookbook_file('run user script').with(
+      path: '/usr/local/bin/run_user_script',
+      mode: 0755,
+      source: 'run_user_script'
+    )
+  end
 end

@@ -22,4 +22,10 @@ cookbook_file "release tarball script" do
   source 'create_release_tarball'
 end
 
+cookbook_file "run user script" do
+  path '/usr/local/bin/run_user_script'
+  mode 0755
+  source 'run_user_script'
+end
+
 include_recipe 'cf_pipeline::cf_deployer'
