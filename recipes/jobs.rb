@@ -2,7 +2,7 @@ chef_gem 'builder'
 include_recipe 'jenkins::server'
 
 def add_jenkins_user_job(name, job_settings)
-  job_dir = ::File.join(node['jenkins']['server']['home'], 'jobs', "#{name}")
+  job_dir = ::File.join(node['jenkins']['server']['home'], 'jobs', name)
   job_config = ::File.join(job_dir, 'config.xml')
 
   directory job_dir do
