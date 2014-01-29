@@ -6,9 +6,6 @@ describe 'cf_pipeline::jobs' do
       'git' => 'https://github.com/org/release.git',
       'git_ref' => 'master',
       'script_path' => './path/to/script.sh',
-      'env' => {
-        'FAKE_ENV' => "fake_env"
-      }
     }
   end
 
@@ -47,7 +44,6 @@ describe 'cf_pipeline::jobs' do
   let(:expected_env) do
     (<<-SH
 PIPELINE_USER_SCRIPT=./path/to/script.sh
-FAKE_ENV=fake_env
     SH
     ).strip
   end
@@ -71,6 +67,28 @@ FAKE_ENV=fake_env
                                             in: fake_jenkins_home,
                                             env: expected_env,
                                             downstream: ['next_job'],
+                                            command: "run_user_script") }
+  end
+
+  context 'when environment is specified' do
+    let(:job_config) do
+      config = default_job_config.dup
+      config['env'] = { 'FAKE_ENV' => "fake_env" }
+      config
+    end
+
+    let(:expected_env) do
+      (<<-SH
+PIPELINE_USER_SCRIPT=./path/to/script.sh
+FAKE_ENV=fake_env
+      SH
+      ).strip
+    end
+
+    it { should create_user_jenkins_job('example_job',
+                                            in: fake_jenkins_home,
+                                            env: expected_env,
+                                            downstream: [],
                                             command: "run_user_script") }
   end
 
