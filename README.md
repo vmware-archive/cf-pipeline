@@ -94,6 +94,62 @@ With this configuration, three Jenkins jobs will be created:
 
 The `infrastructure` key must be one of the infrastructures that `cf_deployer` considers valid (currently `warden`, `aws`, or `vsphere`).
 
+## How do I apply the cookbook's recipes to a machine?
+
+There are two main options for applying this cookbook.
+If you want to play with the Jenkins box locally using Virtualbox or if you want to deploy to AWS, Vagrant is probably the simplest choice.
+If Vagrant doesn't have a working plugin for your infrastructure (i.e. vSphere), [soloist](https://github.com/mkocher/soloist) is a great way to go from a box with Ruby to a box that is your CI.
+
+### Vagrant
+
+Just set up your Vagrantfile with a chef-solo provisioner similar to this code:
+
+```ruby
+vm_config.vm.provision(:chef_solo) do |chef|
+  chef.log_level = :debug
+  chef.cookbooks_path = [File.join(File.dirname(__FILE__), 'cookbooks')] # Assumes librarian-chef
+  chef.add_recipe 'cf-jenkins::profile' # Debugging only, you may not want profiling
+  chef.add_recipe 'cf_pipeline'
+  chef.json = {
+    cf_pipeline: {
+      pipelines: {
+        YAML.load_file(File.expand_path('pipelines.yml', __FILE__))
+      },
+      jobs: {
+        # ...
+      },
+      ssh: {
+        public_key: File.read(File.expand_path('~/.ssh/id_ci.pub')),
+        private_key: File.read(File.expand_path('~/.ssh/id_ci')),
+      },
+      # etc.
+    }
+  }
+```
+
+Fortunately, a Vagrantfile is just Ruby code, so that lets us be a little more clever about dynamic or confidential information in the configuration.
+
+### Soloist
+
+There are more manual steps involved in a soloist configuration.
+You'll need a soloistrc file, which will look something like this YAML:
+
+```yaml
+recipes:
+  - cf_pipeline
+node_attributes:
+  cf_pipeline:
+    # ...
+```
+
+The soloistrc is just a static YAML file, so if you have a need for dynamic information in your attributes, you may want to write a script to generate the soloistrc.
+
+You will also need a Cheffile that looks awfully similar to the one in this repository, minding that the declaration for the cf_pipeline cookbook will need to change to a git reference.
+
+Finally, run `gem install soloist && soloist` to apply the recipes on that box.
+If you don't have Ruby available on the box yet, it is fine to install Ruby with whatever mechanism that system provides (e.g. `apt-get install ruby19` on Ubuntu).
+The recipes will install another, isolated Ruby to be used by Jenkins.
+
 ## Development
 
 ### Tips for running tests successfully
