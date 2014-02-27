@@ -12,7 +12,7 @@ After running the default `cf_pipeline` recipe with valid attributes, you will h
 
 * Jenkins running behind nginx
 * A user named `jenkins`
-* Go 1.2 (version configurable through overrides, see )
+* Go 1.2 (version not currently configurable)
 * Ruby 1.9.3-p484 (version configurable through overrides, see [attributes/ruby_versions.rb](attributes/ruby_versions.rb))
 
 ## How do I configure this cookbook?
