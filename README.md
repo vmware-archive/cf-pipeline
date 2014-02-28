@@ -220,3 +220,11 @@ You should be able to run `kitchen converge && kitchen verify` at any time, but 
 
 This is almost certainly because of large files in the packer/ folder that are being copied over when `librarian-chef install` is automatically run before your specs.
 If you remove the large files from the packer/ folder, then `librarian-chef install` will run much more quickly.
+
+## Troubleshooting
+
+### 500 error when waiting for Jenkins to start
+
+The Chef log will normally show a series of 503 responses while waiting for Jenkins to start.
+If it begins showing 500 responses after that, the Chef run will fail.
+In that case, you can log onto the machine and run `sudo service jenkins restart`, or you can restart the whole machine.
