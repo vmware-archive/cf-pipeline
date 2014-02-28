@@ -94,6 +94,63 @@ With this configuration, three Jenkins jobs will be created:
 
 The `infrastructure` key must be one of the infrastructures that `cf_deployer` considers valid (currently `warden`, `aws`, or `vsphere`).
 
+### Other configuration options
+
+#### Packages
+
+Set the `cf_pipeline.packages` attribute to specify other packages to be installed (e.g. with `apt-get` on Ubuntu):
+
+```yaml
+cf_pipeline:
+  packages: # install the set of packages needed to support Capybara
+    - qt4-dev-tools
+    - libqt4-dev
+    - libqt4-core
+    - libqt4-gui
+    - xvfb
+```
+
+Note that there are a number of non-optional packages installed automatically for Jenkins to run properly.
+
+#### GitHub OAuth
+
+To configure GitHub OAuth as a means of authentication for your Jenkins instance, you'll need to configure attributes specifying which GitHub users have what permissions and you will need to register your Jenkins instance as a GitHub application (for the OAuth callback).
+The attributes will look like:
+
+```yaml
+cf_pipeline:
+  github_oauth:
+    organization: cloudfoundry # members of this GitHub organization will be given read access to the Jenkins instance
+    admins: # list of GitHub usernames who will have admin access to the Jenkins UI
+      - octocat
+    client_id: abc123 # get this value when you configure a GitHub application
+    client_secret: def456 # ditto
+```
+
+To configure the GitHub application:
+
+1. Create a GitHub application token.
+  1. Go to [Application Settings](https://github.com/settings/applications)
+  1. Register new application
+  1. For the authorization callback URL, use `http://your-jenkins.example.com/securityRealm/finishLogin`, replacing the domain with the domain of your Jenkins instance.
+     If you don't have/know your domain yet, it's okay to put e.g. `http://localhost` for now and update it once you know the domain.
+
+#### Jenkins Plugins
+
+There is currently no entry point to configure a custom set of Jenkins plugins, although that functionality should be very straightforward to add.
+See [recipes/jenkins_plugins.rb](recipes/jenkins_plugins.rb) for the default set of Jenkins plugins.
+
+#### cf_deployer
+
+To change the git revision/branch/tag of cf_deployer installed on the machine, specify `cf_pipeline.cf_deployer_ref`:
+
+```yaml
+cf_pipeline:
+  cf_deployer_ref: v1.0.0 # a tag that doesn't actually currently exist
+```
+
+Most of the time, you'll want to stick with the default value here.
+
 ## How do I apply the cookbook's recipes to a machine?
 
 There are two main options for applying this cookbook.
