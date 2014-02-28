@@ -162,6 +162,8 @@ If Vagrant doesn't have a working plugin for your infrastructure (i.e. vSphere),
 Just set up your Vagrantfile with a chef-solo provisioner similar to this code:
 
 ```ruby
+local.vm.box_url = 'https://s3.amazonaws.com/cf-pipeline-downloads/packer_virtualbox-iso_virtualbox.box'
+
 vm_config.vm.provision(:chef_solo) do |chef|
   chef.log_level = :debug
   chef.cookbooks_path = [File.join(File.dirname(__FILE__), 'cookbooks')] # Assumes librarian-chef
