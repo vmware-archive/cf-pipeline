@@ -13,7 +13,7 @@ After running the default `cf_pipeline` recipe with valid attributes, you will h
 * Jenkins running behind nginx
 * A user named `jenkins`
 * Go 1.2 (version not currently configurable)
-* Ruby 1.9.3-p484 (version configurable through overrides, see [attributes/ruby_versions.rb](attributes/ruby_versions.rb))
+* Ruby 1.9.3-p484 (version configurable through Chef overrides)
 
 ## How do I configure this cookbook?
 
@@ -95,6 +95,16 @@ With this configuration, three Jenkins jobs will be created:
 The `infrastructure` key must be one of the infrastructures that `cf_deployer` considers valid (currently `warden`, `aws`, or `vsphere`).
 
 ### Other configuration options
+
+#### Ruby versions
+
+```yaml
+rubies:
+  list:
+    - ruby 1.9.3-p484
+    - ruby 2.0.0-p353
+  install_bundler: true
+```
 
 #### Packages
 
