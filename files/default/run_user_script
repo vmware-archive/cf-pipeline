@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -T
+
 source go_and_ruby
 
 git submodule init
 git submodule status | awk '{print $2}' | xargs -P10 -n1 git submodule update --init --recursive
 
-$PIPELINE_USER_SCRIPT
+source $PIPELINE_USER_SCRIPT
