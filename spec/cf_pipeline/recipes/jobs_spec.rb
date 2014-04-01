@@ -56,6 +56,21 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
                                             command: "run_user_script") }
   end
 
+  context 'when artifact_glob is specified' do
+    let(:job_config) do
+      config = default_job_config.dup
+      config['artifact_glob'] = 'foo/*.bar'
+      config
+    end
+
+    it { should create_user_jenkins_job('example_job',
+                                            in: fake_jenkins_home,
+                                            env: expected_env,
+                                            artifact_glob: 'foo/*.bar',
+                                            downstream: [],
+                                            command: "run_user_script") }
+  end
+
   context 'when trigger_on_success is specified' do
     let(:job_config) do
       config = default_job_config.dup
@@ -107,6 +122,7 @@ FAKE_ENV=fake_env
         ),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:artifact_glob, '')),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:downstream).join(', ')),
       ]
     }

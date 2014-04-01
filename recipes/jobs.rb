@@ -18,6 +18,7 @@ def add_jenkins_user_job(name, job_settings)
   job.env = ({'PIPELINE_USER_SCRIPT' => job_settings.fetch('script_path')}).merge(job_settings.fetch('env', {}))
   job.downstream_jobs = job_settings.fetch('trigger_on_success', [])
   job.command = 'run_user_script'
+  job.artifact_glob = job_settings.fetch('artifact_glob', nil)
 
   file job_config do
     content job.to_xml
