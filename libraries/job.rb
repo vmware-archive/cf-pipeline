@@ -38,6 +38,7 @@ module JenkinsClient
     private
 
     def properties(xml)
+      return if build_parameters.empty?
       xml.properties do
         xml.tag!('hudson.model.ParametersDefinitionProperty') do
           xml.parameterDefinitions do

@@ -19,15 +19,28 @@ describe JenkinsClient::Job do
     expect(doc.xpath('//project/description').text).to eq('Best job ever')
   end
 
-  it 'serializes its build parameters' do
-    build_params = [
-      {'name' =>  'FOO', 'description' =>  'All about Foo'},
-      {'name' => 'COWGIRL', 'description' => 'A creamery'},
-    ]
-    job = JenkinsClient::Job.new
-    job.build_parameters = build_params
+  describe '#build_parameters' do
+    context 'when NOT set' do
+      it 'serializes the build parameters' do
+        job = JenkinsClient::Job.new
 
-    expect(job.to_xml).to have_build_parameters(build_params)
+        doc = Nokogiri::XML(job.to_xml)
+        expect(doc.xpath('//project/properties')).to be_empty
+      end
+    end
+
+    context 'when set' do
+      it 'serializes the build parameters' do
+        build_params = [
+          {'name' =>  'FOO', 'description' =>  'All about Foo'},
+          {'name' => 'COWGIRL', 'description' => 'A creamery'},
+        ]
+        job = JenkinsClient::Job.new
+        job.build_parameters = build_params
+
+        expect(job.to_xml).to have_build_parameters(build_params)
+      end
+    end
   end
 
   it 'serializes the git SCM config' do
