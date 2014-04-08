@@ -66,6 +66,28 @@ cf_pipeline:
       script_path: tests/integration_tests.sh
 ```
 
+You can also you use parameterized trigger jobs. For example, `my_unit_tests` triggers `my_integration_tests`, passing
+the Jenkins `BUILD_NUMBER` environment variable as `BUILD`
+
+```yaml
+cf_pipeline:
+  jobs:
+    my_unit_tests: # create a Jenkins job named "my_unit_tests"
+      # ... omitted ...
+      trigger_on_success:
+        - name: my_integration_tests # trigger the Jenkins job with this name
+          # parameters are KEY=value pairs, one per line (Java properties file format).
+          parameters: |
+            BUILD=${BUILD_NUMBER}
+            FOO=bar-value
+
+    my_integration_tests:
+      build_properties:
+        - name: BUILD
+          description: The build number from `my_unit_tests`
+      # ... omitted ...
+```
+
 ### Pipelines
 
 To set up an example pipeline that deploys a "dummy" Bosh release to Bosh Lite:

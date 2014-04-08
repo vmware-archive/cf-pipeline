@@ -19,6 +19,17 @@ describe JenkinsClient::Job do
     expect(doc.xpath('//project/description').text).to eq('Best job ever')
   end
 
+  it 'serializes its build parameters' do
+    build_params = [
+      {'name' =>  'FOO', 'description' =>  'All about Foo'},
+      {'name' => 'COWGIRL', 'description' => 'A creamery'},
+    ]
+    job = JenkinsClient::Job.new
+    job.build_parameters = build_params
+
+    expect(job.to_xml).to have_build_parameters(build_params)
+  end
+
   it 'serializes the git SCM config' do
     job = JenkinsClient::Job.new
     job.git_repo_url = "https://github.com/org/repo"
@@ -37,9 +48,28 @@ describe JenkinsClient::Job do
 
   it 'serializes the downstream jobs' do
     job = JenkinsClient::Job.new
-    job.downstream_jobs = ['other-project', 'different-project']
+    job.downstream_jobs = [
+      'other-project',
+      {
+        'name' => 'param-project',
+        'parameters' => 'FOO=bar',
+      }
+    ]
 
-    expect(job.to_xml).to have_downstream_jobs(['other-project', 'different-project'])
+    expect(job.to_xml).to have_downstream_jobs(['other-project', 'param-project'])
+  end
+
+  it 'sets parameters as CDATA for downstream jobs' do
+    job = JenkinsClient::Job.new
+    job.downstream_jobs = [
+      'other-project',
+      {
+        'name' => 'param-project',
+        'parameters' => 'FOO=bar',
+      }
+    ]
+
+    expect(job.to_xml).to have_downstream_job_with_parameter('param-project', 'FOO=bar')
   end
 
   it 'archives artifacts when a glob is given' do
@@ -69,6 +99,21 @@ DEPLOYMENTS_REPO=my_deployments_repo
 DEPLOYMENT_NAME=my_deployment_name
     SH
   end
+
+  matcher(:have_build_parameters) do |build_parameters|
+    match do |xml|
+      doc = Nokogiri::XML(xml)
+
+      xpath_base = '//properties/hudson.model.ParametersDefinitionProperty/parameterDefinitions/hudson.model.StringParameterDefinition'
+      doc.xpath("#{xpath_base}/name").map{|node| node.text}.sort == build_parameters.map{|bp| bp['name']}.sort &&
+        doc.xpath("#{xpath_base}/description").map{|node| node.text}.sort == build_parameters.map{|bp| bp['description']}.sort
+    end
+
+    failure_message_for_should do |xml|
+      "Expected to find downstream jobs '#{build_parameters.join(', ')}'in:\n#{Nokogiri::XML(xml).to_xml(indent: 2)}"
+    end
+  end
+
 
   matcher(:have_environment_variables) do |shell_vars|
     match do |xml|
@@ -131,11 +176,24 @@ DEPLOYMENT_NAME=my_deployment_name
     match do |xml|
       doc = Nokogiri::XML(xml)
       xpath = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig/projects'
-      doc.xpath(xpath).first.text.split(", ").sort == expected_project_names.sort
+      doc.xpath(xpath).map{|node| node.text}.sort == expected_project_names.sort
     end
 
     failure_message_for_should do |xml|
       "Expected to find downstream jobs #{expected_project_names.join(', ')} in:\n#{xml}"
+    end
+  end
+
+  matcher(:have_downstream_job_with_parameter) do |downstream_job, parameter|
+    match do |xml|
+      doc = Nokogiri::XML(xml)
+      xpath_base = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
+      doc.xpath("#{xpath_base}/projects").map{|node| node.text}.include?(downstream_job) &&
+        doc.xpath("#{xpath_base}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties").children.select(&:cdata?).first.text == parameter
+    end
+
+    failure_message_for_should do |xml|
+      "Expected to find downstream jobs '#{downstream_job}', and parameter #{parameter} in:\n#{Nokogiri::XML(xml).to_xml(indent: 2)}"
     end
   end
 
