@@ -19,6 +19,7 @@ def add_jenkins_user_job(name, job_settings)
   job.downstream_jobs = job_settings.fetch('trigger_on_success', [])
   job.command = 'run_user_script'
   job.artifact_glob = job_settings.fetch('artifact_glob', nil)
+  job.build_parameters = job_settings.fetch('build_parameters', [])
 
   file job_config do
     content job.to_xml
