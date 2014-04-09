@@ -52,11 +52,7 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when artifact_glob is specified' do
-    let(:job_settings) do
-      config = default_job_settings.dup
-      config['artifact_glob'] = 'foo/*.bar'
-      config
-    end
+    let(:job_settings) { default_job_settings.merge('artifact_glob' => 'foo/*.bar') }
 
     it { should create_user_jenkins_job('example_job',
                                         in: fake_jenkins_home,
@@ -67,11 +63,7 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when build_parameters is specified' do
-    let(:job_settings) do
-      config = default_job_settings.dup
-      config['build_parameters'] = [{'name' => 'FOO'}, {'name' => 'BAR'}]
-      config
-    end
+    let(:job_settings) { default_job_settings.merge('build_parameters' => [{'name' => 'FOO'}, {'name' => 'BAR'}]) }
 
     it { should create_user_jenkins_job('example_job',
                                         in: fake_jenkins_home,
@@ -82,9 +74,7 @@ describe 'cf_pipeline::jobs' do
   end
 
   describe '#block_on_downstream_builds' do
-    let(:job_settings) do
-      default_job_settings.merge('block_on_downstream_builds' => block_on_downstream_builds)
-    end
+    let(:job_settings) { default_job_settings.merge('block_on_downstream_builds' => block_on_downstream_builds) }
 
     context 'when true' do
       let(:block_on_downstream_builds) { true }
@@ -110,11 +100,7 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when trigger_on_success is specified' do
-    let(:job_settings) do
-      config = default_job_settings.dup
-      config['trigger_on_success'] = ['next_job']
-      config
-    end
+    let(:job_settings) { default_job_settings.merge('trigger_on_success' => ['next_job']) }
 
     it { should create_user_jenkins_job('example_job',
                                         in: fake_jenkins_home,
@@ -124,12 +110,7 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when environment is specified' do
-    let(:job_settings) do
-      config = default_job_settings.dup
-      config['env'] = {'FAKE_ENV' => "fake_env"}
-      config
-    end
-
+    let(:job_settings) { default_job_settings.merge('env' => {'FAKE_ENV' => "fake_env"}) }
     let(:expected_env) { "PIPELINE_USER_SCRIPT=./path/to/script.sh\nFAKE_ENV=fake_env" }
 
     it { should create_user_jenkins_job('example_job',
