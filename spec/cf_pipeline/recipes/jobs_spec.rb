@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'cf_pipeline::jobs' do
-  let(:default_job_config) do
+  let(:default_job_settings) do
     {
       'git' => 'https://github.com/org/release.git',
       'git_ref' => 'master',
@@ -9,13 +9,11 @@ describe 'cf_pipeline::jobs' do
     }
   end
 
-  let(:job_config) { default_job_config }
+  let(:job_settings) { default_job_settings }
 
-  let(:job_attributes) do
+  let(:jobs) do
     {
-      'jobs' => {
-        'example_job' => job_config
-      }
+      'example_job' => job_settings
     }
   end
 
@@ -26,20 +24,20 @@ describe 'cf_pipeline::jobs' do
           'home' => fake_jenkins_home
         }
       }
-      node.set['cf_pipeline'] = job_attributes
+      node.set['cf_pipeline'] = {'jobs' => jobs}
     end.converge(described_recipe)
   end
 
   let(:fake_jenkins_home) { Dir.mktmpdir }
-  let(:job_config_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
+  let(:job_settings_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
   let(:fake_chef_rest_for_jenkins_check) { double(Chef::REST::RESTRequest, call: double(Net::HTTPSuccess).as_null_object) }
 
   let(:expected_env) { 'PIPELINE_USER_SCRIPT=./path/to/script.sh' }
   let(:expected_command) { 'run_user_script' }
 
   before do
-    FileUtils.mkdir_p(File.dirname(job_config_path))
-    FileUtils.touch(job_config_path)
+    FileUtils.mkdir_p(File.dirname(job_settings_path))
+    FileUtils.touch(job_settings_path)
 
     Chef::REST::RESTRequest.stub(new: fake_chef_rest_for_jenkins_check)
   end
@@ -54,8 +52,8 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when artifact_glob is specified' do
-    let(:job_config) do
-      config = default_job_config.dup
+    let(:job_settings) do
+      config = default_job_settings.dup
       config['artifact_glob'] = 'foo/*.bar'
       config
     end
@@ -69,8 +67,8 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when build_parameters is specified' do
-    let(:job_config) do
-      config = default_job_config.dup
+    let(:job_settings) do
+      config = default_job_settings.dup
       config['build_parameters'] = [{'name' => 'FOO'}, {'name' => 'BAR'}]
       config
     end
@@ -84,8 +82,8 @@ describe 'cf_pipeline::jobs' do
   end
 
   describe '#block_on_downstream_builds' do
-    let(:job_config) do
-      default_job_config.merge('block_on_downstream_builds' => block_on_downstream_builds)
+    let(:job_settings) do
+      default_job_settings.merge('block_on_downstream_builds' => block_on_downstream_builds)
     end
 
     context 'when true' do
@@ -112,8 +110,8 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when trigger_on_success is specified' do
-    let(:job_config) do
-      config = default_job_config.dup
+    let(:job_settings) do
+      config = default_job_settings.dup
       config['trigger_on_success'] = ['next_job']
       config
     end
@@ -126,8 +124,8 @@ describe 'cf_pipeline::jobs' do
   end
 
   context 'when environment is specified' do
-    let(:job_config) do
-      config = default_job_config.dup
+    let(:job_settings) do
+      config = default_job_settings.dup
       config['env'] = {'FAKE_ENV' => "fake_env"}
       config
     end
