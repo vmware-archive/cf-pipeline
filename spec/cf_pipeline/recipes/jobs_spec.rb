@@ -29,48 +29,34 @@ describe 'cf_pipeline::jobs' do
   end
 
   let(:fake_jenkins_home) { Dir.mktmpdir }
-  let(:job_settings_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
   let(:fake_chef_rest_for_jenkins_check) { double(Chef::REST::RESTRequest, call: double(Net::HTTPSuccess).as_null_object) }
+
+  let(:job_config_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
 
   let(:expected_env) { 'PIPELINE_USER_SCRIPT=./path/to/script.sh' }
   let(:expected_command) { 'run_user_script' }
 
   before do
-    FileUtils.mkdir_p(File.dirname(job_settings_path))
-    FileUtils.touch(job_settings_path)
+    FileUtils.mkdir_p(File.dirname(job_config_path))
+    FileUtils.touch(job_config_path)
 
     Chef::REST::RESTRequest.stub(new: fake_chef_rest_for_jenkins_check)
   end
 
-
   context 'minimal config' do
-    it { should create_user_jenkins_job('example_job',
-                                        in: fake_jenkins_home,
-                                        env: expected_env,
-                                        downstream: [],
-                                        command: expected_command) }
+    it { should have_job_config_with_content(job_config_path, job_settings) }
   end
 
   context 'when artifact_glob is specified' do
     let(:job_settings) { default_job_settings.merge('artifact_glob' => 'foo/*.bar') }
 
-    it { should create_user_jenkins_job('example_job',
-                                        in: fake_jenkins_home,
-                                        env: expected_env,
-                                        artifact_glob: 'foo/*.bar',
-                                        downstream: [],
-                                        command: expected_command) }
+    it { should have_job_config_with_content(job_config_path, job_settings) }
   end
 
   context 'when build_parameters is specified' do
     let(:job_settings) { default_job_settings.merge('build_parameters' => [{'name' => 'FOO'}, {'name' => 'BAR'}]) }
 
-    it { should create_user_jenkins_job('example_job',
-                                        in: fake_jenkins_home,
-                                        env: expected_env,
-                                        build_parameters: ['FOO', 'BAR'],
-                                        downstream: [],
-                                        command: expected_command) }
+    it { should have_job_config_with_content(job_config_path, job_settings) }
   end
 
   describe '#block_on_downstream_builds' do
@@ -79,92 +65,60 @@ describe 'cf_pipeline::jobs' do
     context 'when true' do
       let(:block_on_downstream_builds) { true }
 
-      it { should create_user_jenkins_job('example_job',
-                                          in: fake_jenkins_home,
-                                          env: expected_env,
-                                          block_on_downstream_builds: true,
-                                          downstream: [],
-                                          command: expected_command) }
+      it { should have_job_config_with_content(job_config_path, job_settings) }
     end
 
     context 'when false' do
       let(:block_on_downstream_builds) { false }
 
-      it { should create_user_jenkins_job('example_job',
-                                          in: fake_jenkins_home,
-                                          env: expected_env,
-                                          block_on_downstream_builds: false,
-                                          downstream: [],
-                                          command: expected_command) }
+      it { should have_job_config_with_content(job_config_path, job_settings) }
     end
   end
 
   context 'when trigger_on_success is specified' do
     let(:job_settings) { default_job_settings.merge('trigger_on_success' => ['next_job']) }
 
-    it { should create_user_jenkins_job('example_job',
-                                        in: fake_jenkins_home,
-                                        env: expected_env,
-                                        downstream: ['next_job'],
-                                        command: expected_command) }
+    it { should have_job_config_with_content(job_config_path, job_settings) }
   end
 
   context 'when environment is specified' do
     let(:job_settings) { default_job_settings.merge('env' => {'FAKE_ENV' => "fake_env"}) }
-    let(:expected_env) { "PIPELINE_USER_SCRIPT=./path/to/script.sh\nFAKE_ENV=fake_env" }
 
-    it { should create_user_jenkins_job('example_job',
-                                        in: fake_jenkins_home,
-                                        env: expected_env,
-                                        downstream: [],
-                                        command: expected_command) }
+    it { should have_job_config_with_content(job_config_path, job_settings) }
   end
 
-  matcher(:create_user_jenkins_job) do |expected_job_name, options|
-    job_directory = ::File.join(options.fetch(:in), 'jobs', expected_job_name)
-    config_path = ::File.join(job_directory, 'config.xml')
-
+  matcher(:have_job_config_with_content) do |job_config_path, job_settings|
     matchers_for = ->(chef_run) {
-      jenkins_user = jenkins_group = chef_run.node['jenkins']['server']['user']
-      build_params_matchers =
-        options.fetch(:build_parameters, []).map do |bp|
-          ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(bp)
-        end
-      block_on_downstream_builds =
-        "<blockBuildWhenDownstreamBuilding>#{options.fetch(:block_on_downstream_builds, false)}</blockBuildWhenDownstreamBuilding>"
-
       [
-        ChefSpec::Matchers::ResourceMatcher.new('directory', 'create', job_directory).with(mode: 0755),
-        ChefSpec::Matchers::ResourceMatcher.new('file', 'create', config_path).with(
-          owner: jenkins_user,
-          group: jenkins_group,
+        ChefSpec::Matchers::ResourceMatcher.new('directory', 'create', ::File.dirname(job_config_path)).with(mode: 0755),
+        ChefSpec::Matchers::ResourceMatcher.new('file', 'create', job_config_path).with(
+          owner: chef_run.node['jenkins']['server']['user'],
+          group: chef_run.node['jenkins']['server']['user'],
           mode: 00644,
         ),
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:env)),
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:artifact_glob, '')),
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:downstream).join(', ')),
-        *build_params_matchers,
-        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(block_on_downstream_builds),
+        ChefSpec::Matchers::RenderFileMatcher.new(job_config_path).with_content(
+          JenkinsClient::Job.from_config(job_settings).to_xml
+        ),
       ]
     }
 
     match do |chef_run|
       matchers_for[chef_run].all? { |matcher| matcher.matches?(chef_run) } &&
-        ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed.
-          matches?(chef_run.file(config_path))
+        ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').
+          to(:restart).delayed.matches?(chef_run.file(job_config_path))
     end
 
     failure_message_for_should do |chef_run|
-      restart_matcher = ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed
-      failed_matcher = matchers_for[chef_run].find { |matcher| !matcher.matches?(chef_run) }
-      failed_matcher ||= restart_matcher unless restart_matcher.matches?(chef_run.file(config_path))
+      failed_matchers = matchers_for[chef_run].select { |matcher| !matcher.matches?(chef_run) }
 
-      failed_matcher.failure_message_for_should
+      restart_matcher = ChefSpec::Matchers::NotificationsMatcher.new('service[jenkins]').to(:restart).delayed
+      failed_matchers << restart_matcher unless restart_matcher.matches?(chef_run.file(job_config_path))
+
+      failed_matchers.map(&:failure_message_for_should).join("\n")
     end
 
     description do
-      "create a user-jenkins-job for #{expected_job_name}"
+      "create the expected config.xml for #{::File.basename(job_config_path)}"
     end
   end
 end
