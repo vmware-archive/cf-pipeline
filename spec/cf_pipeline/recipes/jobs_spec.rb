@@ -34,6 +34,9 @@ describe 'cf_pipeline::jobs' do
   let(:job_config_path) { File.join(fake_jenkins_home, 'jobs', 'example_job', 'config.xml') }
   let(:fake_chef_rest_for_jenkins_check) { double(Chef::REST::RESTRequest, call: double(Net::HTTPSuccess).as_null_object) }
 
+  let(:expected_env) { 'PIPELINE_USER_SCRIPT=./path/to/script.sh' }
+  let(:expected_command) { 'run_user_script' }
+
   before do
     FileUtils.mkdir_p(File.dirname(job_config_path))
     FileUtils.touch(job_config_path)
@@ -41,19 +44,13 @@ describe 'cf_pipeline::jobs' do
     Chef::REST::RESTRequest.stub(new: fake_chef_rest_for_jenkins_check)
   end
 
-  let(:expected_env) do
-    (<<-SH
-PIPELINE_USER_SCRIPT=./path/to/script.sh
-    SH
-    ).strip
-  end
 
   context 'minimal config' do
     it { should create_user_jenkins_job('example_job',
                                         in: fake_jenkins_home,
                                         env: expected_env,
                                         downstream: [],
-                                        command: "run_user_script") }
+                                        command: expected_command) }
   end
 
   context 'when artifact_glob is specified' do
@@ -68,7 +65,7 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
                                         env: expected_env,
                                         artifact_glob: 'foo/*.bar',
                                         downstream: [],
-                                        command: "run_user_script") }
+                                        command: expected_command) }
   end
 
   context 'when build_parameters is specified' do
@@ -83,7 +80,7 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
                                         env: expected_env,
                                         build_parameters: ['FOO', 'BAR'],
                                         downstream: [],
-                                        command: "run_user_script") }
+                                        command: expected_command) }
   end
 
   context 'when trigger_on_success is specified' do
@@ -97,7 +94,7 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
                                         in: fake_jenkins_home,
                                         env: expected_env,
                                         downstream: ['next_job'],
-                                        command: "run_user_script") }
+                                        command: expected_command) }
   end
 
   context 'when environment is specified' do
@@ -107,19 +104,13 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
       config
     end
 
-    let(:expected_env) do
-      (<<-SH
-PIPELINE_USER_SCRIPT=./path/to/script.sh
-FAKE_ENV=fake_env
-      SH
-      ).strip
-    end
+    let(:expected_env) { "PIPELINE_USER_SCRIPT=./path/to/script.sh\nFAKE_ENV=fake_env" }
 
     it { should create_user_jenkins_job('example_job',
                                         in: fake_jenkins_home,
                                         env: expected_env,
                                         downstream: [],
-                                        command: "run_user_script") }
+                                        command: expected_command) }
   end
 
   matcher(:create_user_jenkins_job) do |expected_job_name, options|
