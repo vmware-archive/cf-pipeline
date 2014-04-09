@@ -10,6 +10,24 @@ module JenkinsClient
                   :build_parameters,
                   :block_on_downstream_builds
 
+    def self.from_config(job_settings)
+      new.tap do |job|
+        job.command = 'run_user_script'
+        job.env =
+          {
+            'PIPELINE_USER_SCRIPT' => job_settings.fetch('script_path')
+          }.merge(job_settings.fetch('env', {}))
+
+        job.git_repo_url = job_settings.fetch('git')
+        job.git_repo_branch = job_settings.fetch('git_ref')
+
+        job.downstream_jobs = job_settings.fetch('trigger_on_success', [])
+        job.artifact_glob = job_settings.fetch('artifact_glob', nil)
+        job.build_parameters = job_settings.fetch('build_parameters', [])
+        job.block_on_downstream_builds = job_settings.fetch('block_on_downstream_builds', false)
+      end
+    end
+
     def initialize
       @downstream_jobs = []
       @env = {}

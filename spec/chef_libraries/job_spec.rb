@@ -10,6 +10,58 @@ describe JenkinsClient::Job do
     it { should have_color_output }
   end
 
+  describe '.from_config' do
+    let(:job_config) do
+      {
+        'script_path' => '/script/path',
+        'git' => 'FAKE_GIT_REPO',
+        'git_ref' => 'FAKE_GIT_REF',
+      }
+    end
+
+    subject(:job) { JenkinsClient::Job.from_config(job_config) }
+
+    it { expect(job.command).to eq('run_user_script') }
+    it { expect(job.env).to eq('PIPELINE_USER_SCRIPT' => '/script/path') }
+    it { expect(job.git_repo_url).to eq('FAKE_GIT_REPO') }
+    it { expect(job.git_repo_branch).to eq('FAKE_GIT_REF') }
+
+    context 'with invalid job settings' do
+      context 'when git is unset' do
+        let(:job_config) do
+          {
+            'script_path' => '/script/path',
+            'git_ref' => 'FAKE_GIT_REF',
+          }
+        end
+
+        it { expect { job }.to raise_error(KeyError, 'key not found: "git"') }
+      end
+
+      context 'when git_ref is unset' do
+        let(:job_config) do
+          {
+            'script_path' => '/script/path',
+            'git' => 'FAKE_GIT_REPO',
+          }
+        end
+
+        it { expect { job }.to raise_error(KeyError, 'key not found: "git_ref"') }
+      end
+
+      context 'when script_path is unset' do
+        let(:job_config) do
+          {
+            'git' => 'FAKE_GIT_REPO',
+            'git_ref' => 'FAKE_GIT_REF',
+          }
+        end
+
+        it { expect { job }.to raise_error(KeyError, 'key not found: "script_path"') }
+      end
+    end
+  end
+
   it 'serializes the description' do
     job = JenkinsClient::Job.new
     job.description = "Best job ever"
@@ -32,7 +84,7 @@ describe JenkinsClient::Job do
     context 'when set' do
       it 'serializes the build parameters' do
         build_params = [
-          {'name' =>  'FOO', 'description' =>  'All about Foo'},
+          {'name' => 'FOO', 'description' => 'All about Foo'},
           {'name' => 'COWGIRL', 'description' => 'A creamery'},
         ]
         job = JenkinsClient::Job.new
@@ -149,8 +201,8 @@ DEPLOYMENT_NAME=my_deployment_name
       doc = Nokogiri::XML(xml)
 
       xpath_base = '//properties/hudson.model.ParametersDefinitionProperty/parameterDefinitions/hudson.model.StringParameterDefinition'
-      doc.xpath("#{xpath_base}/name").map{|node| node.text}.sort == build_parameters.map{|bp| bp['name']}.sort &&
-        doc.xpath("#{xpath_base}/description").map{|node| node.text}.sort == build_parameters.map{|bp| bp['description']}.sort
+      doc.xpath("#{xpath_base}/name").map { |node| node.text }.sort == build_parameters.map { |bp| bp['name'] }.sort &&
+        doc.xpath("#{xpath_base}/description").map { |node| node.text }.sort == build_parameters.map { |bp| bp['description'] }.sort
     end
 
     failure_message_for_should do |xml|
@@ -220,7 +272,7 @@ DEPLOYMENT_NAME=my_deployment_name
     match do |xml|
       doc = Nokogiri::XML(xml)
       xpath = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig/projects'
-      doc.xpath(xpath).map{|node| node.text}.sort == expected_project_names.sort
+      doc.xpath(xpath).map { |node| node.text }.sort == expected_project_names.sort
     end
 
     failure_message_for_should do |xml|
@@ -232,7 +284,7 @@ DEPLOYMENT_NAME=my_deployment_name
     match do |xml|
       doc = Nokogiri::XML(xml)
       xpath_base = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
-      doc.xpath("#{xpath_base}/projects").map{|node| node.text}.include?(downstream_job) &&
+      doc.xpath("#{xpath_base}/projects").map { |node| node.text }.include?(downstream_job) &&
         doc.xpath("#{xpath_base}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties").children.select(&:cdata?).first.text == parameter
     end
 
