@@ -50,10 +50,10 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
 
   context 'minimal config' do
     it { should create_user_jenkins_job('example_job',
-                                            in: fake_jenkins_home,
-                                            env: expected_env,
-                                            downstream: [],
-                                            command: "run_user_script") }
+                                        in: fake_jenkins_home,
+                                        env: expected_env,
+                                        downstream: [],
+                                        command: "run_user_script") }
   end
 
   context 'when artifact_glob is specified' do
@@ -64,17 +64,17 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
     end
 
     it { should create_user_jenkins_job('example_job',
-                                            in: fake_jenkins_home,
-                                            env: expected_env,
-                                            artifact_glob: 'foo/*.bar',
-                                            downstream: [],
-                                            command: "run_user_script") }
+                                        in: fake_jenkins_home,
+                                        env: expected_env,
+                                        artifact_glob: 'foo/*.bar',
+                                        downstream: [],
+                                        command: "run_user_script") }
   end
 
   context 'when build_parameters is specified' do
     let(:job_config) do
       config = default_job_config.dup
-      config['build_parameters'] = [{'name' =>  'FOO'}, {'name' =>  'BAR'}]
+      config['build_parameters'] = [{'name' => 'FOO'}, {'name' => 'BAR'}]
       config
     end
 
@@ -94,16 +94,16 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
     end
 
     it { should create_user_jenkins_job('example_job',
-                                            in: fake_jenkins_home,
-                                            env: expected_env,
-                                            downstream: ['next_job'],
-                                            command: "run_user_script") }
+                                        in: fake_jenkins_home,
+                                        env: expected_env,
+                                        downstream: ['next_job'],
+                                        command: "run_user_script") }
   end
 
   context 'when environment is specified' do
     let(:job_config) do
       config = default_job_config.dup
-      config['env'] = { 'FAKE_ENV' => "fake_env" }
+      config['env'] = {'FAKE_ENV' => "fake_env"}
       config
     end
 
@@ -116,10 +116,10 @@ FAKE_ENV=fake_env
     end
 
     it { should create_user_jenkins_job('example_job',
-                                            in: fake_jenkins_home,
-                                            env: expected_env,
-                                            downstream: [],
-                                            command: "run_user_script") }
+                                        in: fake_jenkins_home,
+                                        env: expected_env,
+                                        downstream: [],
+                                        command: "run_user_script") }
   end
 
   matcher(:create_user_jenkins_job) do |expected_job_name, options|
