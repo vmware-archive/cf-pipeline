@@ -10,7 +10,7 @@ module JenkinsClient
 
     def to_xml
       require 'builder'
-      xml = Builder::XmlMarkup.new
+      xml = Builder::XmlMarkup.new(indent: 2)
       xml.project do
         xml.description description
 
