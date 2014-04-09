@@ -71,6 +71,21 @@ PIPELINE_USER_SCRIPT=./path/to/script.sh
                                             command: "run_user_script") }
   end
 
+  context 'when build_parameters is specified' do
+    let(:job_config) do
+      config = default_job_config.dup
+      config['build_parameters'] = [{'name' =>  'FOO'}, {'name' =>  'BAR'}]
+      config
+    end
+
+    it { should create_user_jenkins_job('example_job',
+                                        in: fake_jenkins_home,
+                                        env: expected_env,
+                                        build_parameters: ['FOO', 'BAR'],
+                                        downstream: [],
+                                        command: "run_user_script") }
+  end
+
   context 'when trigger_on_success is specified' do
     let(:job_config) do
       config = default_job_config.dup
@@ -113,6 +128,11 @@ FAKE_ENV=fake_env
 
     matchers_for = ->(chef_run) {
       jenkins_user = jenkins_group = chef_run.node['jenkins']['server']['user']
+      build_params_matchers =
+        options.fetch(:build_parameters, []).map do |bp|
+          ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(bp)
+        end
+
       [
         ChefSpec::Matchers::ResourceMatcher.new('directory', 'create', job_directory).with(mode: 0755),
         ChefSpec::Matchers::ResourceMatcher.new('file', 'create', config_path).with(
@@ -124,6 +144,7 @@ FAKE_ENV=fake_env
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:artifact_glob, '')),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:downstream).join(', ')),
+        *build_params_matchers
       ]
     }
 
