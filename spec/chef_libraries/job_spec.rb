@@ -43,6 +43,37 @@ describe JenkinsClient::Job do
     end
   end
 
+  describe '#block_on_downstream_builds' do
+    context 'when true' do
+      it 'sets blockBuildWhenDownstreamBuilding to true' do
+        job = JenkinsClient::Job.new
+        job.block_on_downstream_builds = true
+
+        doc = Nokogiri::XML(job.to_xml)
+        expect(doc.xpath('//project/blockBuildWhenDownstreamBuilding').text).to eq('true')
+      end
+    end
+
+    context 'when false' do
+      it 'sets blockBuildWhenDownstreamBuilding to false' do
+        job = JenkinsClient::Job.new
+        job.block_on_downstream_builds = false
+
+        doc = Nokogiri::XML(job.to_xml)
+        expect(doc.xpath('//project/blockBuildWhenDownstreamBuilding').text).to eq('false')
+      end
+    end
+
+    context 'when not set' do
+      it 'sets blockBuildWhenDownstreamBuilding to false' do
+        job = JenkinsClient::Job.new
+
+        doc = Nokogiri::XML(job.to_xml)
+        expect(doc.xpath('//project/blockBuildWhenDownstreamBuilding').text).to eq('false')
+      end
+    end
+  end
+
   it 'serializes the git SCM config' do
     job = JenkinsClient::Job.new
     job.git_repo_url = "https://github.com/org/repo"

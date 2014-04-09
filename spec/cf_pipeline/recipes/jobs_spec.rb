@@ -83,6 +83,34 @@ describe 'cf_pipeline::jobs' do
                                         command: expected_command) }
   end
 
+  describe '#block_on_downstream_builds' do
+    let(:job_config) do
+      default_job_config.merge('block_on_downstream_builds' => block_on_downstream_builds)
+    end
+
+    context 'when true' do
+      let(:block_on_downstream_builds) { true }
+
+      it { should create_user_jenkins_job('example_job',
+                                          in: fake_jenkins_home,
+                                          env: expected_env,
+                                          block_on_downstream_builds: true,
+                                          downstream: [],
+                                          command: expected_command) }
+    end
+
+    context 'when false' do
+      let(:block_on_downstream_builds) { false }
+
+      it { should create_user_jenkins_job('example_job',
+                                          in: fake_jenkins_home,
+                                          env: expected_env,
+                                          block_on_downstream_builds: false,
+                                          downstream: [],
+                                          command: expected_command) }
+    end
+  end
+
   context 'when trigger_on_success is specified' do
     let(:job_config) do
       config = default_job_config.dup
@@ -123,6 +151,8 @@ describe 'cf_pipeline::jobs' do
         options.fetch(:build_parameters, []).map do |bp|
           ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(bp)
         end
+      block_on_downstream_builds =
+        "<blockBuildWhenDownstreamBuilding>#{options.fetch(:block_on_downstream_builds, false)}</blockBuildWhenDownstreamBuilding>"
 
       [
         ChefSpec::Matchers::ResourceMatcher.new('directory', 'create', job_directory).with(mode: 0755),
@@ -135,7 +165,8 @@ describe 'cf_pipeline::jobs' do
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:command)),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:artifact_glob, '')),
         ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(options.fetch(:downstream).join(', ')),
-        *build_params_matchers
+        *build_params_matchers,
+        ChefSpec::Matchers::RenderFileMatcher.new(config_path).with_content(block_on_downstream_builds),
       ]
     }
 

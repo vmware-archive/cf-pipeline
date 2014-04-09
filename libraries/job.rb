@@ -1,6 +1,14 @@
 module JenkinsClient
   class Job
-    attr_accessor :artifact_glob, :command, :description, :downstream_jobs, :env, :git_repo_url, :git_repo_branch, :build_parameters
+    attr_accessor :artifact_glob,
+                  :command,
+                  :description,
+                  :downstream_jobs,
+                  :env,
+                  :git_repo_url,
+                  :git_repo_branch,
+                  :build_parameters,
+                  :block_on_downstream_builds
 
     def initialize
       @downstream_jobs = []
@@ -13,6 +21,7 @@ module JenkinsClient
       xml = Builder::XmlMarkup.new(indent: 2)
       xml.project do
         xml.description description
+        xml.blockBuildWhenDownstreamBuilding(!!block_on_downstream_builds)
 
         properties(xml)
 
@@ -75,7 +84,7 @@ module JenkinsClient
 
       xml.EnvInjectBuildWrapper(plugin: 'envinject@1.89') do
         xml.info do
-          xml.propertiesContent(env.map {|k, v| "#{k}=#{v}"}.join("\n"))
+          xml.propertiesContent(env.map { |k, v| "#{k}=#{v}" }.join("\n"))
           xml.loadFilesFromMaster(false)
         end
       end

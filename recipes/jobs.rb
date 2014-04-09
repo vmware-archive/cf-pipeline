@@ -20,6 +20,7 @@ def add_jenkins_user_job(name, job_settings)
   job.command = 'run_user_script'
   job.artifact_glob = job_settings.fetch('artifact_glob', nil)
   job.build_parameters = job_settings.fetch('build_parameters', [])
+  job.block_on_downstream_builds = job_settings.fetch('block_on_downstream_builds', false)
 
   file job_config do
     content job.to_xml
