@@ -236,7 +236,7 @@ DEPLOYMENT_NAME=my_deployment_name
   matcher(:have_git_repo_url) do |expected_url|
     match do |xml|
       doc = Nokogiri::XML(xml)
-      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.0" &&
+      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.1.0" &&
         doc.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').text == expected_url
     end
 
@@ -248,7 +248,7 @@ DEPLOYMENT_NAME=my_deployment_name
   matcher(:have_git_repo_branch) do |expected_branch_name|
     match do |xml|
       doc = Nokogiri::XML(xml)
-      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.0" &&
+      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.1.0" &&
         doc.xpath('//scm/branches/hudson.plugins.git.BranchSpec/name').text == expected_branch_name
     end
 
@@ -285,6 +285,7 @@ DEPLOYMENT_NAME=my_deployment_name
       doc = Nokogiri::XML(xml)
       xpath_base = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
       doc.xpath("#{xpath_base}/projects").map { |node| node.text }.include?(downstream_job) &&
+      doc.xpath("#{xpath_base}/configs/hudson.plugins.git.GitRevisionBuildParameters").first['plugin'] == 'git@2.1.0' &&
         doc.xpath("#{xpath_base}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties").children.select(&:cdata?).first.text == parameter
     end
 

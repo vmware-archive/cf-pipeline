@@ -81,7 +81,7 @@ module JenkinsClient
     end
 
     def scm(xml)
-      xml.scm(class: 'hudson.plugins.git.GitSCM', plugin: 'git@2.0') do
+      xml.scm(class: 'hudson.plugins.git.GitSCM', plugin: 'git@2.1.0') do
         xml.userRemoteConfigs do
           xml.tag!('hudson.plugins.git.UserRemoteConfig') do
             xml.url git_repo_url
@@ -128,7 +128,7 @@ module JenkinsClient
           xml.configs do
             xml.tag!('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
               xml.configs do
-                xml.tag!('hudson.plugins.git.GitRevisionBuildParameters', plugin: 'git@2.0') do
+                xml.tag!('hudson.plugins.git.GitRevisionBuildParameters', plugin: 'git@2.1.0') do
                   xml.combineQueuedCommits false
                 end
 
