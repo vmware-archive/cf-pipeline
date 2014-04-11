@@ -25,6 +25,7 @@ module JenkinsClient
         job.artifact_glob = job_settings.fetch('artifact_glob', nil)
         job.build_parameters = job_settings.fetch('build_parameters', [])
         job.block_on_downstream_builds = job_settings.fetch('block_on_downstream_builds', false)
+        job.description = job_settings.fetch('description', nil)
       end
     end
 

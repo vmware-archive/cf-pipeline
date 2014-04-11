@@ -16,6 +16,7 @@ describe JenkinsClient::Job do
         'script_path' => '/script/path',
         'git' => 'FAKE_GIT_REPO',
         'git_ref' => 'FAKE_GIT_REF',
+        'description' => 'Fake job description'
       }
     end
 
@@ -25,6 +26,24 @@ describe JenkinsClient::Job do
     it { expect(job.env).to eq('PIPELINE_USER_SCRIPT' => '/script/path') }
     it { expect(job.git_repo_url).to eq('FAKE_GIT_REPO') }
     it { expect(job.git_repo_branch).to eq('FAKE_GIT_REF') }
+    it { expect(job.description).to eq('Fake job description') }
+
+    describe 'optional config values' do
+      describe 'description' do
+        context 'when unset' do
+          let(:job_config) do
+            {
+                'script_path' => '/script/path',
+                'git' => 'FAKE_GIT_REPO',
+                'git_ref' => 'FAKE_GIT_REF',
+            }
+          end
+
+          it { expect { job }.not_to raise_error }
+          it { expect(job.description).to be_nil }
+        end
+      end
+    end
 
     context 'with invalid job settings' do
       context 'when git is unset' do
