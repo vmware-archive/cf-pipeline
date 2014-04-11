@@ -16,67 +16,93 @@ describe JenkinsClient::Job do
         'script_path' => '/script/path',
         'git' => 'FAKE_GIT_REPO',
         'git_ref' => 'FAKE_GIT_REF',
-        'description' => 'Fake job description'
       }
     end
 
     subject(:job) { JenkinsClient::Job.from_config(job_config) }
 
-    it { expect(job.command).to eq('run_user_script') }
-    it { expect(job.env).to eq('PIPELINE_USER_SCRIPT' => '/script/path') }
-    it { expect(job.git_repo_url).to eq('FAKE_GIT_REPO') }
-    it { expect(job.git_repo_branch).to eq('FAKE_GIT_REF') }
-    it { expect(job.description).to eq('Fake job description') }
+    it 'sets #command' do
+      expect(job.command).to eq('run_user_script')
+    end
 
-    describe 'optional config values' do
-      describe 'description' do
+    describe 'config parameters' do
+      describe 'git' do
+        context 'when set' do
+          it 'sets #git_repo_url' do
+            expect(job.git_repo_url).to eq('FAKE_GIT_REPO')
+          end
+        end
+
         context 'when unset' do
           let(:job_config) do
             {
-                'script_path' => '/script/path',
-                'git' => 'FAKE_GIT_REPO',
-                'git_ref' => 'FAKE_GIT_REF',
+              'script_path' => '/script/path',
+              'git_ref' => 'FAKE_GIT_REF',
             }
           end
 
+          it { expect { job }.to raise_error(KeyError, 'key not found: "git"') }
+        end
+      end
+
+      describe 'git_ref' do
+        context 'when set' do
+          it 'sets #git_repo_branch' do
+            expect(job.git_repo_branch).to eq('FAKE_GIT_REF')
+          end
+        end
+
+        context 'when unset' do
+          let(:job_config) do
+            {
+              'script_path' => '/script/path',
+              'git' => 'FAKE_GIT_REPO',
+            }
+          end
+
+          it { expect { job }.to raise_error(KeyError, 'key not found: "git_ref"') }
+        end
+      end
+
+      describe 'script_path' do
+        context 'when set' do
+          it 'sets #env["PIPELINE_USER_SCRIPT"]' do
+            expect(job.env['PIPELINE_USER_SCRIPT']).to eq('/script/path')
+          end
+        end
+
+        context 'when unset' do
+          let(:job_config) do
+            {
+              'git' => 'FAKE_GIT_REPO',
+              'git_ref' => 'FAKE_GIT_REF',
+            }
+          end
+
+          it { expect { job }.to raise_error(KeyError, 'key not found: "script_path"') }
+        end
+      end
+
+      describe 'description' do
+        context 'when set' do
+          let(:job_config) do
+            {
+              'script_path' => '/script/path',
+              'git' => 'FAKE_GIT_REPO',
+              'git_ref' => 'FAKE_GIT_REF',
+              'description' => 'Fake job description'
+            }
+          end
+
+          it 'sets #description' do
+            expect(job.description).to eq('Fake job description')
+          end
+        end
+
+        context 'when unset' do
           it { expect { job }.not_to raise_error }
           it { expect(job.description).to be_nil }
         end
-      end
-    end
-
-    context 'with invalid job settings' do
-      context 'when git is unset' do
-        let(:job_config) do
-          {
-            'script_path' => '/script/path',
-            'git_ref' => 'FAKE_GIT_REF',
-          }
-        end
-
-        it { expect { job }.to raise_error(KeyError, 'key not found: "git"') }
-      end
-
-      context 'when git_ref is unset' do
-        let(:job_config) do
-          {
-            'script_path' => '/script/path',
-            'git' => 'FAKE_GIT_REPO',
-          }
-        end
-
-        it { expect { job }.to raise_error(KeyError, 'key not found: "git_ref"') }
-      end
-
-      context 'when script_path is unset' do
-        let(:job_config) do
-          {
-            'git' => 'FAKE_GIT_REPO',
-            'git_ref' => 'FAKE_GIT_REF',
-          }
-        end
-
-        it { expect { job }.to raise_error(KeyError, 'key not found: "script_path"') }
       end
     end
   end
@@ -304,7 +330,7 @@ DEPLOYMENT_NAME=my_deployment_name
       doc = Nokogiri::XML(xml)
       xpath_base = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
       doc.xpath("#{xpath_base}/projects").map { |node| node.text }.include?(downstream_job) &&
-      doc.xpath("#{xpath_base}/configs/hudson.plugins.git.GitRevisionBuildParameters").first['plugin'] == 'git@2.1.0' &&
+        doc.xpath("#{xpath_base}/configs/hudson.plugins.git.GitRevisionBuildParameters").first['plugin'] == 'git@2.1.0' &&
         doc.xpath("#{xpath_base}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties").children.select(&:cdata?).first.text == parameter
     end
 
