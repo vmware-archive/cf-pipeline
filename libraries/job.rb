@@ -129,10 +129,6 @@ module JenkinsClient
           xml.configs do
             xml.tag!('hudson.plugins.parameterizedtrigger.BuildTriggerConfig') do
               xml.configs do
-                xml.tag!('hudson.plugins.git.GitRevisionBuildParameters', plugin: 'git@2.1.0') do
-                  xml.combineQueuedCommits false
-                end
-
                 if job['parameters']
                   xml.tag!('hudson.plugins.parameterizedtrigger.PredefinedBuildParameters') do
                     xml.properties do

@@ -210,7 +210,17 @@ describe JenkinsClient::Job do
       }
     ]
 
-    expect(job.to_xml).to have_downstream_job_with_parameter('param-project', 'FOO=bar')
+    job_xml_doc = Nokogiri::XML(job.to_xml)
+    build_trigger_xpath = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
+
+    expect(job_xml_doc.xpath("#{build_trigger_xpath}/projects").map(&:text)).to include('param-project')
+    expect(job_xml_doc.xpath("#{build_trigger_xpath}/configs/hudson.plugins.git.GitRevisionBuildParameters")).to be_empty
+
+    parameters_from_cdata =
+      job_xml_doc.xpath("#{build_trigger_xpath}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties")
+      .children.select(&:cdata?).first.text
+
+    expect(parameters_from_cdata).to eq('FOO=bar')
   end
 
   it 'archives artifacts when a glob is given' do
@@ -322,20 +332,6 @@ DEPLOYMENT_NAME=my_deployment_name
 
     failure_message_for_should do |xml|
       "Expected to find downstream jobs #{expected_project_names.join(', ')} in:\n#{xml}"
-    end
-  end
-
-  matcher(:have_downstream_job_with_parameter) do |downstream_job, parameter|
-    match do |xml|
-      doc = Nokogiri::XML(xml)
-      xpath_base = '//publishers/hudson.plugins.parameterizedtrigger.BuildTrigger/configs/hudson.plugins.parameterizedtrigger.BuildTriggerConfig'
-      doc.xpath("#{xpath_base}/projects").map { |node| node.text }.include?(downstream_job) &&
-        doc.xpath("#{xpath_base}/configs/hudson.plugins.git.GitRevisionBuildParameters").first['plugin'] == 'git@2.1.0' &&
-        doc.xpath("#{xpath_base}/configs/hudson.plugins.parameterizedtrigger.PredefinedBuildParameters/properties").children.select(&:cdata?).first.text == parameter
-    end
-
-    failure_message_for_should do |xml|
-      "Expected to find downstream jobs '#{downstream_job}', and parameter #{parameter} in:\n#{Nokogiri::XML(xml).to_xml(indent: 2)}"
     end
   end
 
