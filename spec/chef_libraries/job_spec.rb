@@ -3,7 +3,7 @@ require_relative '../../libraries/job'
 require 'nokogiri'
 
 describe JenkinsClient::Job do
-  describe "by default" do
+  describe 'by default' do
     subject { JenkinsClient::Job.new.to_xml }
     it { should have_no_downstream_jobs }
     it { should have_no_artifact_glob }
@@ -109,7 +109,7 @@ describe JenkinsClient::Job do
 
   it 'serializes the description' do
     job = JenkinsClient::Job.new
-    job.description = "Best job ever"
+    job.description = 'Best job ever'
 
     xml = job.to_xml
     doc = Nokogiri::XML(xml)
@@ -173,8 +173,8 @@ describe JenkinsClient::Job do
 
   it 'serializes the git SCM config' do
     job = JenkinsClient::Job.new
-    job.git_repo_url = "https://github.com/org/repo"
-    job.git_repo_branch = "master"
+    job.git_repo_url = 'https://github.com/org/repo'
+    job.git_repo_branch = 'master'
 
     expect(job.to_xml).to have_git_repo_url('https://github.com/org/repo')
     expect(job.to_xml).to have_git_repo_branch('master')
@@ -215,9 +215,9 @@ describe JenkinsClient::Job do
 
   it 'archives artifacts when a glob is given' do
     job = JenkinsClient::Job.new
-    job.artifact_glob = "dev_releases/*.tgz"
+    job.artifact_glob = 'dev_releases/*.tgz'
 
-    expect(job.to_xml).to have_artifact_glob("dev_releases/*.tgz")
+    expect(job.to_xml).to have_artifact_glob('dev_releases/*.tgz')
   end
 
   it 'has a standard set of environment variables' do
@@ -281,7 +281,7 @@ DEPLOYMENT_NAME=my_deployment_name
   matcher(:have_git_repo_url) do |expected_url|
     match do |xml|
       doc = Nokogiri::XML(xml)
-      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.1.0" &&
+      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == 'git@2.1.0' &&
         doc.xpath('//scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url').text == expected_url
     end
 
@@ -293,7 +293,7 @@ DEPLOYMENT_NAME=my_deployment_name
   matcher(:have_git_repo_branch) do |expected_branch_name|
     match do |xml|
       doc = Nokogiri::XML(xml)
-      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == "git@2.1.0" &&
+      doc.xpath('//scm[@class="hudson.plugins.git.GitSCM"]').first['plugin'] == 'git@2.1.0' &&
         doc.xpath('//scm/branches/hudson.plugins.git.BranchSpec/name').text == expected_branch_name
     end
 
