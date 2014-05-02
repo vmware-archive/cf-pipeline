@@ -104,6 +104,28 @@ describe JenkinsClient::Job do
           it { expect(job.description).to be_nil }
         end
       end
+
+      describe 'builds_to_keep' do
+        context 'when set' do
+          let(:job_config) do
+            {
+              'script_path' => '/script/path',
+              'git' => 'FAKE_GIT_REPO',
+              'git_ref' => 'FAKE_GIT_REF',
+              'builds_to_keep' => 33
+            }
+          end
+
+          it 'sets #builds_to_keep' do
+            expect(job.builds_to_keep).to eq(33)
+          end
+        end
+
+        context 'when unset' do
+          it { expect { job }.not_to raise_error }
+          it { expect(job.builds_to_keep).to be_nil }
+        end
+      end
     end
   end
 
@@ -251,6 +273,15 @@ DEPLOYMENT_NAME=my_deployment_name
     SH
   end
 
+  it 'serializes the "builds to keep" field' do
+    job = JenkinsClient::Job.new
+    expect(job.to_xml).to keep_builds(-1)
+
+    job.builds_to_keep = 5
+
+    expect(job.to_xml).to keep_builds(5)
+  end
+
   matcher(:have_build_parameters) do |build_parameters|
     match do |xml|
       doc = Nokogiri::XML(xml)
@@ -274,6 +305,17 @@ DEPLOYMENT_NAME=my_deployment_name
 
     failure_message_for_should do |xml|
       "Expected to find the following shell vars:\n#{shell_vars}\nin the following XML:\n#{xml}"
+    end
+  end
+
+  matcher(:keep_builds) do |number_of_builds|
+    match do |xml|
+      doc = Nokogiri::XML(xml)
+      doc.xpath('//project/logRotator/numToKeep').text == number_of_builds.to_s
+    end
+
+    failure_message_for_should do |xml|
+      "Expected to find the following 'num_builds to keep':\n#{number_of_builds}\nin the following XML:\n#{xml}"
     end
   end
 

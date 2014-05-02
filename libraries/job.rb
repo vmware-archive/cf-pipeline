@@ -7,6 +7,7 @@ module JenkinsClient
                   :env,
                   :git_repo_url,
                   :git_repo_branch,
+                  :builds_to_keep,
                   :build_parameters,
                   :block_on_downstream_builds
 
@@ -23,6 +24,7 @@ module JenkinsClient
 
         job.downstream_jobs = job_settings.fetch('trigger_on_success', [])
         job.artifact_glob = job_settings.fetch('artifact_glob', nil)
+        job.builds_to_keep = job_settings.fetch('builds_to_keep', nil)
         job.build_parameters = job_settings.fetch('build_parameters', [])
         job.block_on_downstream_builds = job_settings.fetch('block_on_downstream_builds', false)
         job.description = job_settings.fetch('description', nil)
@@ -40,6 +42,12 @@ module JenkinsClient
       xml = Builder::XmlMarkup.new(indent: 2)
       xml.project do
         xml.description description
+        xml.logRotator do
+          xml.daysToKeep(-1)
+          xml.numToKeep(builds_to_keep || -1)
+          xml.artifactDaysToKeep(-1)
+          xml.artifactNumToKeep(-1)
+        end
         xml.blockBuildWhenDownstreamBuilding(!!block_on_downstream_builds)
 
         properties(xml)
